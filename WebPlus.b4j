@@ -28,7 +28,7 @@ Sub AppStart (Args() As String)
 '	test1
 	ser.Initialize("ser")
 	ser.Port=888
-	ser.StaticFilesFolder="www"
+	ser.StaticFilesFolder="www"'这个文件夹用来放js和css文件
 	ser.AddHandler("/test","test",False)
 	ser.Start
 	StartMessageLoop

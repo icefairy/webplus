@@ -1,5 +1,5 @@
 <center>
-{#include "/header"#}
+{# include "/header" #}
 <div id="body">
 	<p>这是bodytext的内容：{# $bodytext #}</p>
 	<p>这是bodyhtml的内容：{# $h_bodyhtml #}</p>
@@ -26,7 +26,9 @@
 	如果传入的参数stra="aaa"这里就会显示
 	{# endif #}
 	{# if strb="bbb" #}
-	如果传入的参数strb="bb"这里就会显示
+	如果传入的参数strb="bbb"这里就会显示
+	{# else #}
+	传入的参数strb!="bbb"这里就会显示
 	{# endif #}
 	</p>
 </div>
