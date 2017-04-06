@@ -30,13 +30,14 @@ Public Sub Initialize
 	ThemeName="default"
 	ViewBasePath="view"
 	TPLFileExt=".html"
-	If File.Exists(File.DirApp,"view")=False Or File.IsDirectory(File.DirApp,"File.DirApp")=False Then
-		'如果模版目录不存在就自动创建
-		File.MakeDir(File.DirApp,"view")
-	End If
-	If File.Exists(File.Combine(File.DirApp,"view"),ThemeName)=False Then
-		File.MakeDir(File.Combine(File.DirApp,"view"),ThemeName)
-	End If
+	getTPLPath
+'	If File.Exists(File.DirApp,"view")=False Or File.IsDirectory(File.DirApp,"File.DirApp")=False Then
+'		'如果模版目录不存在就自动创建
+'		File.MakeDir(File.DirApp,"view")
+'	End If
+'	If File.Exists(File.Combine(File.DirApp,"view"),ThemeName)=False Then
+'		File.MakeDir(File.Combine(File.DirApp,"view"),ThemeName)
+'	End If
 	gMap.Initialize
 	gMap.Put("headertitle","WebPlus演示")
 	
@@ -187,7 +188,7 @@ Private Sub processMapVar(tmp0 As String) As String
 	Dim tplvars As Matcher=Regex.Matcher(regsign0,tmp0)
 	Do While tplvars.Find
 		Dim match0 As String=tplvars.Match
-		mLog(match0)
+'		g.mLog(match0)
 		Dim needhtml As Boolean=False
 		Dim matchedvarname As String=match0.Replace("{","").Replace("}","").Replace("#","").Replace("$","").Trim
 		needhtml=matchedvarname.StartsWith("h_")'如果变量名以h_开头则自动进行html编码后输出
@@ -224,7 +225,7 @@ Private Sub processVar(tmp0 As String) As String
 	Dim tplvars As Matcher=Regex.Matcher(regsign0,tmp0)
 	Do While tplvars.Find
 		Dim match0 As String=tplvars.Match
-		mLog(match0)
+'		g.mLog(match0)
 		Dim needhtml As Boolean=False
 		Dim matchedvarname As String=match0.Replace("{","").Replace("}","").Replace("#","").Replace("$","").Trim
 		needhtml=matchedvarname.StartsWith("h_")'如果变量名以h_开头则自动进行html编码后输出
@@ -297,10 +298,3 @@ Public Sub EscapeHtml(Raw As String) As String
 End Sub
 
 #End Region
-#Region utils
-Private Sub mLog(msg As String)
-	If devMode Then
-		Log(msg)
-	End If
-End Sub
-#End region

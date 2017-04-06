@@ -7,6 +7,7 @@ B4J=true
 Sub Process_Globals
 	Private jsg As JSONGenerator
 	Private su As StringUtils
+	Public devMode As Boolean
 End Sub
 Public Sub Json(success As Boolean,data As Object) As  String
 	Dim m As Map
@@ -83,3 +84,10 @@ Public Sub getuuid As String
 	'	Return r.RunMethod("toString")
 End Sub
 
+#Region utils
+public Sub mLog(msg As String)
+	If devMode Then
+		Log(msg)
+	End If
+End Sub
+#End region
