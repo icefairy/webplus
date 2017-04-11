@@ -31,13 +31,6 @@ Public Sub Initialize
 	ViewBasePath="view"
 	TPLFileExt=".html"
 	getTPLPath
-'	If File.Exists(File.DirApp,"view")=False Or File.IsDirectory(File.DirApp,"File.DirApp")=False Then
-'		'如果模版目录不存在就自动创建
-'		File.MakeDir(File.DirApp,"view")
-'	End If
-'	If File.Exists(File.Combine(File.DirApp,"view"),ThemeName)=False Then
-'		File.MakeDir(File.Combine(File.DirApp,"view"),ThemeName)
-'	End If
 	gMap.Initialize
 	gMap.Put("headertitle","WebPlus演示")
 	

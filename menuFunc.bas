@@ -15,12 +15,11 @@ Public Sub Initialize
 	If colMenu.Count=0 Then
 		Dim menu As typMenu
 		menu.Initialize
-		menu.id=0
-		menu.created=G.getdatetime
-		menu.pid=0
+		menu.id="root"
+		menu.pid=""
 		menu.name="根菜单"
 		menu.url="/"
-		colMenu.Insert(Array(typMenu2Map(menu)))
+		create(menu)
 	End If
 End Sub
 '获取顶级菜单列表，这里返回的list中成员是map，需要转换的话自己单独调用typ2Map进行转换
@@ -46,6 +45,7 @@ Public Sub getMenuTree As List
 End Sub
 Public Sub create(item As typMenu)
 	item.created=G.getdatetime
+	item.id=G.getuuid
 	colMenu.Insert(Array(typMenu2Map(item)))
 End Sub
 Public Sub update(item As typMenu)

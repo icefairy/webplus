@@ -5,13 +5,30 @@ B4J=true
 @EndOfDesignText@
 '用户管理模块
 Sub Process_Globals
-	Type typUser(QQ As String,gid As String,salt As String,address As String,pass As String,created As String,mobile As String,head As String,deleted As Int,phone As String,name As String,id As String,updated As String,email As String)
+	Type typUser(QQ As String,gid As String,salt As String,address As String,pass As String,created As String,mobile As String,head As String,deleted As Int,phone As String,name As String,realname As String,id As String,updated As String,email As String)
 	Type typUserGroup(deleted As Int,created As String,name As String,id As String,updated As String)
 	Public colUser,colGroup As MongoCollection
 End Sub
 Public Sub Initialize
+	colGroup=MgoUtils.getTable("usergroup")
+	If colGroup.Count=0 Then
+		Dim cg As typUserGroup
+		cg.Initialize
+		cg.name="管理员"
+		colGroup.Insert(Array(CreateMap("name":"管理员","created":G.getdatetime,"_id":G.getuuid.Replace("-",""))))
+	End If
 	colUser=MgoUtils.getTable("user")
-	colGroup=MgoUtils.getTable("group")
+	If colUser.Count=0 Then
+		Dim cg As typUserGroup= getUserGroupByName("管理员")
+		Dim u As typUser
+		u.Initialize
+		u.gid=cg.id
+		u.id=G.getuuid.Replace("-","")
+		u.name="admin"
+		u.salt=G.getuuid.Replace("-","")
+		u.pass=G.getMd5("webplus"&u.salt)
+		create(u)
+	End If	
 End Sub
 Public Sub getUserList As List
 	Return colUser.Find(CreateMap("deleted":0),Null,Null)
@@ -23,7 +40,15 @@ public Sub getUserGroupById(gid As String) As typUserGroup
 	Dim ret As typUserGroup
 	Dim lst As List=colGroup.Find(CreateMap("deleted":0,"_id":gid),Null,Null)
 	If lst.IsInitialized And lst.Size>0 Then
-		ret=lst.Get(0)
+		ret=map2typUserGroup(lst.Get(0))
+	End If
+	Return ret
+End Sub
+public Sub getUserGroupByName(name As String) As typUserGroup
+	Dim ret As typUserGroup
+	Dim lst As List=colGroup.Find(CreateMap("name":name),Null,Null)
+	If lst.IsInitialized And lst.Size>0 Then
+		ret=map2typUserGroup(lst.Get(0))
 	End If
 	Return ret
 End Sub
@@ -31,12 +56,13 @@ public Sub getUserById(uid As String) As typUser
 	Dim ret As typUser
 	Dim lst As List=colUser.Find(CreateMap("deleted":0,"_id":uid),Null,Null)
 	If lst.IsInitialized And lst.Size>0 Then
-		ret=lst.Get(0)
+		ret=map2typUser(lst.Get(0))
 	End If
 	Return ret
 End Sub
 Public Sub create(item As typUser)
 	item.created=G.getdatetime
+	item.deleted=0
 	colUser.Insert(Array(typUser2Map(item)))
 End Sub
 Public Sub update(item As typUser)
@@ -102,6 +128,7 @@ Public Sub map2typUser(m As Map) As typUser
 	ret.QQ=m.GetDefault("QQ","")
 	ret.gid=m.GetDefault("gid","")
 	ret.salt=m.GetDefault("salt","")
+	ret.realname=m.GetDefault("realname","")
 	ret.address=m.GetDefault("address","")
 	ret.pass=m.GetDefault("pass","")
 	ret.created=m.GetDefault("created","")
@@ -121,6 +148,7 @@ Public Sub typUser2Map(typ As typUser) As Map
 	ret.Put("QQ",typ.QQ)
 	ret.Put("gid",typ.gid)
 	ret.Put("salt",typ.salt)
+	ret.Put("realname",typ.realname)
 	ret.Put("address",typ.address)
 	ret.Put("pass",typ.pass)
 	ret.Put("created",typ.created)

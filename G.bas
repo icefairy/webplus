@@ -10,6 +10,7 @@ Sub Process_Globals
 	Public devMode As Boolean
 	Public action As String="action"
 	Public MessageDigestObj  As MessageDigest
+	Private bc as ByteConverter
 End Sub
 Public Sub Json(success As Boolean,data As Object) As  String
 	Dim m As Map
@@ -78,7 +79,7 @@ Public Sub getTextRev(str As String,signa As String,signb As String,strict As Bo
 End Sub
 Public Sub getMd5(str As String) As String
 	Dim buf() As Byte=MessageDigestObj.GetMessageDigest(str.GetBytes("UTF8"),"MD5")
-	Return BytesToString(buf,0,buf.Length,"UTF-8").ToLowerCase
+	Return bc.HexFromBytes(buf).ToLowerCase
 End Sub
 Public Sub getdatetime As String
 	DateTime.DateFormat="yyyy-MM-dd"

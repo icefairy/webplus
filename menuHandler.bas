@@ -9,7 +9,6 @@ Sub Class_Globals
 End Sub
 
 Public Sub Initialize
-	MgoUtils.init("",0,"")	
 	te.Initialize
 End Sub
 
