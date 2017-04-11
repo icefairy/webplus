@@ -8,6 +8,8 @@ Sub Process_Globals
 	Private jsg As JSONGenerator
 	Private su As StringUtils
 	Public devMode As Boolean
+	Public action As String="action"
+	Public MessageDigestObj  As MessageDigest
 End Sub
 Public Sub Json(success As Boolean,data As Object) As  String
 	Dim m As Map
@@ -26,6 +28,10 @@ Public Sub urlEncode(u As String) As String
 End Sub
 Public Sub urlDecode(u As String) As String
 	Return su.DecodeUrl(u,"UTF-8")
+End Sub
+'用/拆分url
+Public Sub url2Array(u As String) As String()
+	Return Regex.Split("/",u)
 End Sub
 '将只读map转换成可读写map
 Public Sub copyMap(m As Map) As Map
@@ -69,6 +75,10 @@ Public Sub getTextRev(str As String,signa As String,signb As String,strict As Bo
 		End If
 	End If
 	Return ""
+End Sub
+Public Sub getMd5(str As String) As String
+	Dim buf() As Byte=MessageDigestObj.GetMessageDigest(str.GetBytes("UTF8"),"MD5")
+	Return BytesToString(buf,0,buf.Length,"UTF-8").ToLowerCase
 End Sub
 Public Sub getdatetime As String
 	DateTime.DateFormat="yyyy-MM-dd"

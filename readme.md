@@ -1,5 +1,11 @@
 #WebPlus B4J web开发增强框架
+---
+> 
+本项目基于B4J v5.0开发  
+常用模块的配套数据模块方便起见采用[MongoDB]<https://www.mongodb.com/download-center>（不用手工创建表啥的很好用~）  
+QQ群:244038794  
 
+欢迎提供优化建议，最好直接贡献代码 ^_^
 ---
 ### 模版引擎特性说明
 * 支持include引入其他模版，方便对页面进行模块化拆分
@@ -20,7 +26,7 @@
 * 支持IF条件语句  
 > * handler中使用方法见范例中：onlyif、onlyfalse、inta、stra、strb  
 > * 模版中使用1:`<p>{# if isadmin #}是管理员{# else #}
-    	不是管理员
+        不是管理员
 	{# endif #}
 	</p>`
 > * 模版中使用2:`<p>{# if onlyif #}这是单条件示范
@@ -39,10 +45,6 @@
 	{# endif #}`
 * FOR循环暂未实现
 
----
-本项目基于B4J v5.0开发
-QQ群:244038794
-欢迎提供优化建议，最好直接贡献代码^_^
 ---
 * 代码范例:
 > '使用方法 handler（controller）中使用:   

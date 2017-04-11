@@ -225,45 +225,14 @@ Public Sub ExecuteMap(SQL As SQL, Query As String, StringArgs() As String) As Ma
 	cur.Close
 	Return res
 End Sub
-Public Sub ExecuteBaseMap(SQL As SQL, Query As String, StringArgs() As String) As Map
-	Dim res As Map
-	Dim cur As ResultSet
-	If StringArgs <> Null Then 
-		cur = SQL.ExecQuery2(Query, StringArgs)
-	Else
-		cur = SQL.ExecQuery(Query)
-	End If
-	g.mLog("ExecuteMap: " & Query)
-	If cur.NextRow = False Then
-		g.mLog("No records found.")
-		Return res
-	End If
-	res.Initialize
-'	Log("cnt:"&cur.ColumnCount)
-	Do While cur.NextRow
-		res.Put(cur.GetString("ids").ToLowerCase,cur.GetString("val"))
-	Loop
-	cur.Close
-	Return res
-End Sub
-'Executes the query and fills the list with the values in the first column.
-Public Sub ExecuteList(SQL As SQL, Query As String, StringArgs() As String, Limit As Int, List1 As List)
-	List1.Clear
-	Dim Table As List
-	Table = ExecuteMemoryTable(SQL, Query, StringArgs, Limit)
-	If Table.Size = 0 Then Return
-	Dim Cols() As String
-	For i = 0 To Table.Size - 1
-		Cols = Table.Get(i)
-		List1.Add(Cols(0))
-	Next
-End Sub
+
+
 '
 'Public Sub ExecuteTableView(SQL As SQL, Query As String, StringArgs() As String, Limit As Int, _
 '	TableView1 As TableView)
 '	TableView1.Items.Clear
 '	Dim cur As ResultSet
-'	If StringArgs = Null Then 
+'	If StringArgs = Null Then
 '		Dim StringArgs(0) As String
 '	End If
 '	cur = SQL.ExecQuery2(Query, StringArgs)

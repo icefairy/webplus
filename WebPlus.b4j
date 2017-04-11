@@ -1,13 +1,17 @@
 ﻿Version=5
 AppType=StandardJava
-NumberOfModules=4
+NumberOfModules=8
 Module1=WPTemplateEngine
 Module2=G
 Module3=test
 Module4=DBUtils
+Module5=MgoUtils
+Module6=menuHandler
+Module7=UserFunc
+Module8=menuFunc
 Build1=Default,org.xlzbw.webplus
 NumberOfFiles=0
-NumberOfLibraries=7
+NumberOfLibraries=9
 Library1=jcore
 Library2=jserver
 Library3=json
@@ -15,6 +19,8 @@ Library4=byteconverter
 Library5=jstringutils
 Library6=javaobject
 Library7=jsql
+Library8=jmongodb
+Library9=encryption
 @EndOfDesignText@
 'Non-UI application (console / server application)
 #Region Project Attributes 
@@ -32,6 +38,8 @@ Sub AppStart (Args() As String)
 	ser.Port=888
 	ser.StaticFilesFolder="www"'这个文件夹用来放js和css文件
 	ser.AddHandler("/test","test",False)
+	ser.AddHandler("/menu","menuHandler",False)
+	
 	ser.Start
 	StartMessageLoop
 End Sub
@@ -40,7 +48,23 @@ End Sub
 Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	Return True
 End Sub
-'Sub test1
+Sub test1
+	Dim menu As typMenu
+	menu.Initialize
+	menu.id=1
+	menu.created=G.getdatetime
+	menu.pid=0
+	menu.name="根菜单"
+	menu.url="/"
+	Dim ret As Map
+'	Dim mf As menuFunc
+'	mf.Initialize
+'	ret=mf.typMenu2Map(menu)
+	
+	Dim jsg As JSONGenerator
+	jsg.Initialize(ret)
+	Log(jsg.ToPrettyString(1))
+	ExitApplication
 '	Dim str As String=$"{#include "/header"#}
 '<div id="body">
 '	<p>这是bodytext的内容：{# $bodytext #}</p>
@@ -51,4 +75,4 @@ End Sub
 '	str=Regex.Replace($"\{#\s*\$.*?\s*#\}"$,str,"{$content$}".Replace("{","\{").Replace("}","\}").Replace("$","\$"))
 '	Log(str)
 '	ExitApplication
-'End Sub
+End Sub
