@@ -31,6 +31,15 @@
 	传入的参数strb!="bbb"这里就会显示
 	{# endif #}
 	</p>
+	<p>for循环演示
+		<table border="1">
+			<tr><td>第一行</td><td>第二行</td></tr>
+		{# for item in testlist #}
+			<tr><td>本行内容为:{# item.line1 #}</td>
+			<td>本行内容为:{# item.line2 #}</td></tr>
+		{# endfor #}
+		</table>
+	</p>
 </div>
 {#include "/footer"#}
 </center>

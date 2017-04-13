@@ -52,21 +52,17 @@ Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	Return True
 End Sub
 Sub test1
-	Dim menu As typMenu
-	menu.Initialize
-	menu.id=1
-	menu.created=G.getdatetime
-	menu.pid=0
-	menu.name="根菜单"
-	menu.url="/"
-	Dim ret As Map
-'	Dim mf As menuFunc
-'	mf.Initialize
-'	ret=mf.typMenu2Map(menu)
-	
-	Dim jsg As JSONGenerator
-	jsg.Initialize(ret)
-	Log(jsg.ToPrettyString(1))
+'	Dim m As Map
+'	m.Initialize
+'	Dim lst As List
+'	lst.Initialize
+'	For i=0 To 100
+'		lst.Add("line:"&i)
+'	Next
+'	m.Put("list",lst)
+'	Dim jsg As JSONGenerator
+'	jsg.Initialize(m)
+'	Log(jsg.ToPrettyString(1))
 	ExitApplication
 '	Dim str As String=$"{#include "/header"#}
 '<div id="body">

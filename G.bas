@@ -10,7 +10,7 @@ Sub Process_Globals
 	Public devMode As Boolean
 	Public action As String="action"
 	Public MessageDigestObj  As MessageDigest
-	Private bc as ByteConverter
+	Private bc As ByteConverter
 End Sub
 Public Sub Json(success As Boolean,data As Object) As  String
 	Dim m As Map

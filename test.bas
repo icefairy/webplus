@@ -26,5 +26,16 @@ Sub Handle(req As ServletRequest, resp As ServletResponse)
 	te.putData("inta",3)
 	te.putData("stra","aaa")
 	te.putData("onlyiffalse",0)
+	'for循环演示(只支持map类型的list)这个list也可以是直接从数据库中查询出来的结果
+	Dim lst As List
+	lst.Initialize
+	For i=0 To 20
+		Dim m As Map
+		m.Initialize
+		m.Put("line1","text1:"&i)
+		m.Put("line2","text2:"&Rnd(0,100))
+		lst.Add(m)
+	Next
+	te.putData("testlist",lst)
 	te.renderTPL("/live/live")
 End Sub

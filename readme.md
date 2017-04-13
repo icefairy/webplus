@@ -27,7 +27,7 @@ QQ群:244038794
 > * handler中使用方法见范例中：onlyif、onlyfalse、inta、stra、strb  
 > * 模版中使用1:`<p>{# if isadmin #}是管理员{# else #}
         不是管理员
-	{# endif #}
+    {# endif #}
 	</p>`
 > * 模版中使用2:`<p>{# if onlyif #}这是单条件示范
     {# endif #}
@@ -43,8 +43,53 @@ QQ群:244038794
 	{# else #}
 	传入的参数strb!="bbb"这里就会显示
 	{# endif #}`
-* FOR循环暂未实现
-
+* 支持FOR循环
+> * 注意for循环只支持在list中存放map类型
+> * 使用方法见范例中:testlist
+> * 模版中使用:`<p>for循环演示  
+		<table border="1">  
+			<tr><td>第一行</td><td>第二行</td></tr>  
+		{# for item in testlist #}  
+			<tr><td>本行内容为:{# item.line1 #}</td>  
+			<td>本行内容为:{# item.line2 #}</td></tr>  
+		{# endfor #}  
+		</table>  
+	</p>`
+> * Handler中使用:`'for循环演示(只支持map类型的list)这个list也可以是直接从数据库中查询出来的结果  
+	Dim lst As List  
+	lst.Initialize  
+	For i=0 To 20  
+		Dim m As Map  
+		m.Initialize  
+		m.Put("line1","text1:"&i)  
+		m.Put("line2","text2:"&Rnd(0,100))  
+		lst.Add(m)  
+	Next  
+	te.putData("testlist",lst)` 
+> * 最终输出(markdown的table 格式不会弄，见谅 ^_^):`for循环演示  
+第一行    第二行  
+本行内容为:text1:0	本行内容为:text2:62  
+本行内容为:text1:1	本行内容为:text2:3  
+本行内容为:text1:2	本行内容为:text2:58  
+本行内容为:text1:3	本行内容为:text2:38  
+本行内容为:text1:4	本行内容为:text2:79  
+本行内容为:text1:5	本行内容为:text2:74  
+本行内容为:text1:6	本行内容为:text2:18  
+本行内容为:text1:7	本行内容为:text2:96  
+本行内容为:text1:8	本行内容为:text2:1  
+本行内容为:text1:9	本行内容为:text2:51  
+本行内容为:text1:10	本行内容为:text2:72  
+本行内容为:text1:11	本行内容为:text2:72  
+本行内容为:text1:12	本行内容为:text2:96  
+本行内容为:text1:13	本行内容为:text2:98  
+本行内容为:text1:14	本行内容为:text2:8  
+本行内容为:text1:15	本行内容为:text2:37  
+本行内容为:text1:16	本行内容为:text2:69  
+本行内容为:text1:17	本行内容为:text2:75  
+本行内容为:text1:18	本行内容为:text2:83  
+本行内容为:text1:19	本行内容为:text2:3  
+本行内容为:text1:20	本行内容为:text2:74  
+`
 ---
 * 代码范例:
 > '使用方法 handler（controller）中使用:   

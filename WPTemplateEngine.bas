@@ -9,7 +9,6 @@ Sub Class_Globals
 	Private bc As ByteConverter
 	'一个全局的map适用于放置通用的参数集
 	Public gMap As Map
-	Public devMode As Boolean
 	Private mapData As Map '用于存储将要应用到本页面的各种变量数据
 	Private res As ServletResponse
 	Private jsg As JSONGenerator
@@ -25,7 +24,7 @@ End Sub
 'TPL模版中引用其他模版:{# include "/header" #} 引用的模版路径加文件名可以不用带后缀（带上也可以）
 Public Sub Initialize
 	bc.LittleEndian = True
-	devMode=True
+	g.devMode=True
 	mapData.Initialize
 	ThemeName="default"
 	ViewBasePath="view"
@@ -99,7 +98,39 @@ Private Sub getTPLContent(TPLFilePath As String) As String
 	Return tmp0
 End Sub
 '解析FOR循环
-Private Sub processFOR(tmp0 As String) As String
+Private Sub processFOR(tmpinput As String) As String
+	Dim tmp0 As String=tmpinput
+	Dim sb As StringBuilder
+	sb.Initialize
+	Dim signs(2) As String=Array As String("{# for ","{# endfor #}")
+	Dim flg As String=G.getText2(tmp0,signs(0),signs(1))
+	Do While flg.Length>0
+		Dim match0 As String=G.getText2(tmp0,signs(0),signs(1))
+'		g.mLog(match0)
+		Dim forhead As String=G.getText(match0,signs(0),"#}",True).Trim
+		Dim itemname As String=forhead.SubString2(0,forhead.IndexOf(" in ")).Trim
+		Dim tplcontent As String=match0.SubString2(forhead.Length+signs(0).Length+4,match0.Length-signs(1).Length)
+		Dim listname As String=forhead.SubString(forhead.IndexOf("in ")+3).Trim
+		If listname.Length>0 And mapData.ContainsKey(listname) Then
+			Dim obj As Object=mapData.Get(listname)
+			If obj Is List Then
+				Dim tmplist As List=obj
+				If tmplist.IsInitialized And tmplist.Size>0 Then
+					For Each itm As Map In tmplist
+						Dim tmpcontent As String=processVar(tplcontent)
+						tmpcontent=processMapVar2(tmpcontent,itm,itemname)
+						sb.Append(tmpcontent)
+					Next
+				Else
+					G.mLog("tmplist size:0")
+				End If
+			End If
+			tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,sb.ToString)
+		Else
+			tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,"")
+		End If
+		flg=G.getText2(tmp0,signs(0),signs(1))
+	Loop
 	Return tmp0
 End Sub
 '解析IF条件语句
@@ -109,7 +140,7 @@ Private Sub processIF(tmpinput As String) As String
 	Dim flg As String=G.getText2(tmp0,signs(0),signs(1))
 	Do While flg.Length>0
 		Dim match0 As String=G.getText2(tmp0,signs(0),signs(1))
-		Log(match0)
+'		Log(match0)
 '		tmp0=tmp0.Replace(replaceRegexSpecal(signs(0)),"").Replace(replaceRegexSpecal(signs(1)),"")
 		Dim tiaojian As String=G.getText(match0,signs(0),"#}",True).Trim
 		Dim ifelsestrs() As String=Regex.Split(replaceRegexSpecal(signs(2)),match0)
@@ -175,6 +206,10 @@ Private Sub processIncludes(tmp0 As String) As String
 End Sub
 '解析Map变量
 Private Sub processMapVar(tmp0 As String) As String
+	Return processMapVar2(tmp0,mapData,"")
+End Sub
+'解析Map变量
+Private Sub processMapVar2(tmp0 As String,map As Map,itemname As String) As String
 	'开始解析变量，regex:{#\s*\$.*?\s*#}
 	Dim regsign0 As String=$"{#\s*[a-zA-z]+\.+[^\s]*\s*#}"$
 	regsign0=replaceRegexSpecal(regsign0)
@@ -187,24 +222,34 @@ Private Sub processMapVar(tmp0 As String) As String
 		needhtml=matchedvarname.StartsWith("h_")'如果变量名以h_开头则自动进行html编码后输出
 		matchedvarname=matchedvarname.Replace("h_","")
 		Dim varcontent As String
-		Dim matchedvarnames() As String=Regex.Split("\.",matchedvarname)
-		If matchedvarnames.Length>0 Then
-			If mapData.ContainsKey(matchedvarnames(0)) Then
-				Dim m As Map=mapData.Get(matchedvarnames(0))
-				varcontent=m.GetDefault(matchedvarnames(1),matchedvarnames(1))
-			Else
-				varcontent="map:"&matchedvarnames(0)&" not exist"
-			End If
-		Else
-			If mapData.ContainsKey(matchedvarname) Then
-				
-				varcontent= mapData.GetDefault(matchedvarname,matchedvarname)
+		If itemname.Length>0 Then
+			matchedvarname=Regex.Replace(itemname&"\.",matchedvarname,"")
+			If map.ContainsKey(matchedvarname) Then
+				varcontent=map.GetDefault(matchedvarname,matchedvarname)
 				If needhtml Then varcontent=EscapeHtml(varcontent)
 			Else
-				'					mLog("未知变量:"&matchedvarname)
 				varcontent="unknown var:"&matchedvarname
 			End If
+		Else
+			Dim matchedvarnames() As String=Regex.Split("\.",matchedvarname)
+			If matchedvarnames.Length>0 Then
+				If map.ContainsKey(matchedvarnames(0)) Then
+					Dim m As Map=map.Get(matchedvarnames(0))
+					varcontent=m.GetDefault(matchedvarnames(1),matchedvarnames(1))
+				Else
+					varcontent="map:"&matchedvarnames(0)&" not exist"
+				End If
+			Else
+				If map.ContainsKey(matchedvarname) Then
+					varcontent= map.GetDefault(matchedvarname,matchedvarname)
+					If needhtml Then varcontent=EscapeHtml(varcontent)
+				Else
+					'					mLog("未知变量:"&matchedvarname)
+					varcontent="unknown var:"&matchedvarname
+				End If
+			End If
 		End If
+		
 		match0=replaceRegexSpecal(match0)
 		tmp0=Regex.Replace(match0,tmp0,replaceRegexSpecal(varcontent))
 	Loop
