@@ -11,6 +11,7 @@ Sub Process_Globals
 	Public action As String="action"
 	Public MessageDigestObj  As MessageDigest
 	Private bc As ByteConverter
+	Public staticFilesFolder As String="public",uploadFolder As String="upload"
 End Sub
 Public Sub Json(success As Boolean,data As Object) As  String
 	Dim m As Map

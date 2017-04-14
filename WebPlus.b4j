@@ -39,7 +39,7 @@ Sub AppStart (Args() As String)
 	MgoUtils.init("",0,"")'初始化数据库
 	ser.Initialize("ser")
 	ser.Port=888
-	ser.StaticFilesFolder="www"'这个文件夹用来放js和css文件
+	ser.StaticFilesFolder=G.staticFilesFolder'这个文件夹用来放js和css文件
 	ser.AddHandler("/test","test",False)
 	ser.AddHandler("/menu","menuHandler",False)
 	ser.AddHandler("/user","userHandler",False)

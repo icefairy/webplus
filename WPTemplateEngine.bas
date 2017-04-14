@@ -13,7 +13,6 @@ Sub Class_Globals
 	Private res As ServletResponse
 	Private jsg As JSONGenerator
 End Sub
-
 'Version:1.00
 'LastUpdate:2017-4-5 12:25:42
 'this class modify by WebUtils
@@ -30,9 +29,23 @@ Public Sub Initialize
 	ViewBasePath="view"
 	TPLFileExt=".html"
 	getTPLPath
+	If File.Exists(G.staticFilesFolder,G.uploadFolder)=False Or File.IsDirectory(G.staticFilesFolder,G.uploadFolder)=False Then
+		File.MakeDir(G.staticFilesFolder,G.uploadFolder)
+	End If
+	initgmap
+	clearMapData
+End Sub
+Private Sub initgmap
 	gMap.Initialize
 	gMap.Put("headertitle","WebPlus演示")
-	
+	gMap.Put("themedir","/"&ThemeName)
+	gMap.Put("uploaddir","/"&G.uploadFolder)
+End Sub
+Private Sub copygmap
+	If mapData.IsInitialized=False Then mapData.Initialize
+	For Each k As String In gMap.Keys
+		mapData.Put(k,gMap.GetDefault(k,""))
+	Next
 End Sub
 #Region methods
 '清理模版数据
@@ -40,7 +53,15 @@ Public Sub clearMapData
 	mapData.Clear
 	mapData=G.copyMap(gMap)
 End Sub
+'设置主题名称
+Public Sub setThemeName(tn As String)
+	ThemeName=tn
+	gMap.Put("themedir","/"&ThemeName)
+	copygmap
+End Sub
 '填充模版数据（填充完成后调用render进行渲染）
+'保留字段:{# $themedir #}=/themename/
+'保留字段:{# $uploaddir #}=/uploads/
 Public Sub putData(key As String,val As Object)
 	mapData.Put(key,val)
 End Sub
