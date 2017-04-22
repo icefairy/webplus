@@ -35,7 +35,7 @@ Sub Process_Globals
 End Sub
 
 Sub AppStart (Args() As String)
-'	test1
+	test1
 	MgoUtils.init("",0,"")'初始化数据库
 	ser.Initialize("ser")
 	ser.Port=888
@@ -52,6 +52,7 @@ Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	Return True
 End Sub
 Sub test1
+	
 '	Dim m As Map
 '	m.Initialize
 '	Dim lst As List

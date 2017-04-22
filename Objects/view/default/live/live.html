@@ -1,6 +1,6 @@
 {# include "/header" #}
 <center>
-<div id="body">
+<div id="body" class="layui-textarea">
 	<p>这是bodytext的内容：{# $bodytext #}</p>
 	<p>这是bodyhtml的内容：{# $h_bodyhtml #}</p>
 	<p>我是:{# my.username #}</p>
@@ -33,7 +33,7 @@
 	{# endif #}
 	</p>
 	<p>for循环演示
-		<table>
+		<table class="layui-table">
 			<tr><td>第一行</td><td>第二行</td></tr>
 		{# for item in testlist #}
 			<tr><td>本行内容为:{# item.line1 #}</td>
@@ -41,6 +41,16 @@
 		{# endfor #}
 		</table>
 	</p>
+	<button class="layui-btn" onclick="layer.msg('玩命提示中');">show layer</button>
 </div>
+<script>
+ 
+//一般直接写在一个js文件中
+layui.use(['layer', 'form'], function(){
+  var layer = layui.layer
+  ,form = layui.form();
+  
+});
+</script> 
 </center>
 {#include "/footer"#}
