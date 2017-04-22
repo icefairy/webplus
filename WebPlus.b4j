@@ -1,6 +1,6 @@
 ﻿Version=5
 AppType=StandardJava
-NumberOfModules=10
+NumberOfModules=12
 Module1=userHandler
 Module2=UserFunc
 Module3=WPTemplateEngine
@@ -8,9 +8,11 @@ Module4=G
 Module5=menuFunc
 Module6=menuHandler
 Module7=moduleFunc
-Module8=test
-Module9=DBUtils
-Module10=MgoUtils
+Module8=DBUtils
+Module9=MgoUtils
+Module10=jarUtils
+Module11=initscanner
+Module12=testHandler
 Build1=Default,org.xlzbw.webplus
 NumberOfFiles=0
 NumberOfLibraries=9
@@ -27,32 +29,41 @@ Library9=encryption
 'Non-UI application (console / server application)
 #Region Project Attributes 
 	#CommandLineArgs:
-	#MergeLibraries: True 
+	#MergeLibraries: false 
 #End Region
 
 Sub Process_Globals
-	Dim ser As Server
+	Public ser As Server
+	Private autoscanner As initscanner
 End Sub
 
 Sub AppStart (Args() As String)
-	test1
-	MgoUtils.init("",0,"")'初始化数据库
+'	test1
+'	MgoUtils.init("",0,"")'初始化数据库
 	ser.Initialize("ser")
+	G.devMode=True
 	ser.Port=888
 	ser.StaticFilesFolder=G.staticFilesFolder'这个文件夹用来放js和css文件
-	ser.AddHandler("/test","test",False)
-	ser.AddHandler("/menu","menuHandler",False)
-	ser.AddHandler("/user","userHandler",False)
+	autoscanner.Initialize(ser)
+'	ser.AddHandler("/test","test",False)
+'	ser.AddHandler("/menu","menuHandler",False)
+'	ser.AddHandler("/user","userHandler",False)
+	Dim ju As jarUtils
+	ju.Initialize
+	Log("ok:"&ju.GetAllClasses.Size)
 	ser.Start
 	StartMessageLoop
 End Sub
 
 'Return true to allow the default exceptions handler to handle the uncaught exception.
 Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	Log(Error)
 	Return True
 End Sub
 Sub test1
-	
+	Dim ju As jarUtils
+	ju.Initialize
+	ju.GetAllClasses
 '	Dim m As Map
 '	m.Initialize
 '	Dim lst As List
