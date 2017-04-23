@@ -23,6 +23,18 @@ Public Sub GetAllClassesNames As List
 	Next
 	Return clsList
 End Sub
+Public Sub GetAllClassesNamesFromJar(pkgName As String,jarpath As String) As List
+	Dim clsList As List=GetAllClassesFromJar(pkgName,jarpath)
+	For i=0 To clsList.Size-1
+		Dim clsName As String=clsList.Get(i)
+		clsName=clsName.SubString2(clsName.LastIndexOf(".")+1,clsName.Length)
+		clsName=clsName.Replace("class ","")
+		clsList.Set(i,clsName)
+	Next
+	Return clsList
+End Sub
+
+
 Public Sub getClassProperties(cls As Object) As List
 	Dim lst As List
 	jo=Me
@@ -46,6 +58,16 @@ Public Sub GetAllClasses(pkgname As String) As List
 	End If
 	Return lst
 End Sub
+Public Sub GetAllClassesFromJar(pkgname As String,path As String) As JavaObject
+	Dim lst As List
+	jo=Me
+	lst=jo.RunMethod("getClassesFromJar",Array As Object(pkgname,path))
+	If lst.IsInitialized=False Or lst.Size=0 Then
+		lst.Initialize
+		Log("class list empty")
+	End If
+	Return lst
+End Sub
 Public Sub getThisClass As JavaObject
 	jo=Me
 	Return jo.RunMethod("getClass",Null)
@@ -58,13 +80,20 @@ Public Sub getClassByName(fullname As String) As JavaObject
 	jo=Me
 	Return jo.RunMethod("getClassByName",Array As String(fullname))
 End Sub
+'return the jar file path when MergeLibraries=true
+'return the directory path when MergeLibraries=false or debug mode
+'path based on system(AbsolutePath)
+Public Sub getSrcPath As String
+	jo=Me
+	Return jo.RunMethod("getSrcPath",Null)
+End Sub
 'get package name of this app
 Public Sub getpkgName As String
 	jo=Me
 	Dim pkg As String=jo.RunMethod("getpkgName",Array As Object(getThisClass))
-	Log(pkg)
 	Return pkg
 End Sub
+
 #If java
 import java.io.File;
 import java.lang.reflect.Field;  
@@ -96,6 +125,19 @@ import java.util.jar.JarFile;
         }  
         return result;  
     }  
+	public String getSrcPath() {
+		URL url=getClass().getProtectionDomain().getCodeSource().getLocation();
+		String path="";
+		try {
+			path=URLDecoder.decode(url.getPath(), "utf-8");
+			File file=new File(path);
+			path=file.getAbsolutePath();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return path;
+		
+	}
 	public List<Method> getClassMethods(Class c){
 		Method m[] = c.getMethods(); // 取得全部的方法
 		List <Method> result = new ArrayList<Method>();  
@@ -164,7 +206,6 @@ import java.util.jar.JarFile;
         for(int i = 0; i< packageLength; i++){
             realClassLocation = realClassLocation + File.separator+packagePathSplit[i];
         }
-		BA.Log("realClassLocation:"+realClassLocation);
         File packeageDir = new File(realClassLocation);
         if(packeageDir.isDirectory()){
             String[] allClassName = packeageDir.list();
@@ -189,29 +230,22 @@ import java.util.jar.JarFile;
         //定义一个枚举的集合 并进行循环来处理这个目录下的things
         Enumeration<URL> dirs;
         try {
-            dirs = Thread.currentThread().getContextClassLoader().getResources(".");
-			//dirs = Thread.currentThread().getContextClassLoader().getResources(packageDirName);
-			BA.Log("pkg:"+packageDirName+" dirs:"+dirs.toString()+" hasChild:"+dirs.hasMoreElements());
+            dirs = Thread.currentThread().getContextClassLoader().getResources(packageDirName);
             //循环迭代下去
             while (dirs.hasMoreElements()){
                 //获取下一个元素
                 URL url = dirs.nextElement();
-				BA.Log("url:"+dirs.toString());
                 //得到协议的名称
                 String protocol = url.getProtocol();
-				BA.Log("protocol:"+protocol );
                 //如果是以文件的形式保存在服务器上
                 if ("file".equals(protocol)) {
                     //获取包的物理路径
-					BA.Log("from file:");
                     String filePath = URLDecoder.decode(url.getFile(), "UTF-8");
-					BA.Log("filePath:"+filePath);
                     //以文件的方式扫描整个包下的文件 并添加到集合中
                     findAndAddClassesInPackageByFile(packageName, filePath, recursive, classes);
                 } else if ("jar".equals(protocol)){
                     //如果是jar包文件 
                     //定义一个JarFile
-					BA.Log("from jar file:");
                     JarFile jar;
                     try {
                         //获取jar
@@ -263,6 +297,56 @@ import java.util.jar.JarFile;
        
         return classes;
     }
+	public List<Class<?>> getClassesFromJar(String packageName,String path){
+		//第一个class类的集合
+        JarFile jar;
+        String packageDirName = packageName.replace('.', '/');
+        ArrayList<Class<?>> classes=new ArrayList<>();
+        boolean recursive=true;
+        try {
+            //获取jar
+            jar =new JarFile(path);
+            //从此jar包 得到一个枚举类
+            Enumeration<JarEntry> entries = jar.entries();
+            //同样的进行循环迭代
+            while (entries.hasMoreElements()) {
+                //获取jar里的一个实体 可以是目录 和一些jar包里的其他文件 如META-INF等文件
+                JarEntry entry = entries.nextElement();
+                String name = entry.getName();
+                //如果是以/开头的
+                if (name.charAt(0) == '/') {
+                    //获取后面的字符串
+                    name = name.substring(1);
+                }
+                //如果前半部分和定义的包名相同
+                if (name.startsWith(packageDirName)) {
+                    int idx = name.lastIndexOf('/');
+                    //如果以"/"结尾 是一个包
+                    if (idx != -1) {
+                        //获取包名 把"/"替换成"."
+                        packageName = name.substring(0, idx).replace('/', '.');
+                    }
+                    //如果可以迭代下去 并且是一个包
+                    if ((idx != -1) || recursive){
+                        //如果是一个.class文件 而且不是目录
+                        if (name.endsWith(".class") && !entry.isDirectory()) {
+                            //去掉后面的".class" 获取真正的类名
+                            String className = name.substring(packageName.length() + 1, name.length() - 6);
+                            try {
+                                //添加到classes
+                                classes.add(Class.forName(packageName + '.' + className));
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                          }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } 
+		return classes;
+	}
     /**
      * 以文件的形式来获取包下的所有Class
      * @param packageName

@@ -28,7 +28,7 @@ Library8=encryption
 #Region Project Attributes 
 	#CommandLineArgs:
 	'set to false when using initscanner
-	#MergeLibraries: true 
+	#MergeLibraries: false 
 	'use next line when using sqlite
 '	#AdditionalJar: sqlite-jdbc-3.7.2
 	'use next line when using mysql
@@ -50,6 +50,7 @@ Sub AppStart (Args() As String)
 	ser.Port=888
 	ser.StaticFilesFolder=G.staticFilesFolder'这个文件夹用来放js和css文件
 	autoscanner.Initialize(ser)
+'	autoscanner.test
 	ser.Start
 	StartMessageLoop
 End Sub
@@ -60,6 +61,7 @@ Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	Return True
 End Sub
 Sub test1
+	
 	Dim ju As jarUtils
 	ju.Initialize
 	Dim jo As JavaObject
