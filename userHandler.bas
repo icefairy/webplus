@@ -6,6 +6,7 @@ B4J=true
 
 Sub Class_Globals
 	Private te As WPTemplateEngine
+	Private actionkey As String="/user"
 End Sub
 
 Public Sub Initialize

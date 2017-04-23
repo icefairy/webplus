@@ -1,6 +1,6 @@
 ﻿Version=5
 AppType=StandardJava
-NumberOfModules=12
+NumberOfModules=11
 Module1=userHandler
 Module2=UserFunc
 Module3=WPTemplateEngine
@@ -8,28 +8,33 @@ Module4=G
 Module5=menuFunc
 Module6=menuHandler
 Module7=moduleFunc
-Module8=DBUtils
-Module9=MgoUtils
-Module10=jarUtils
-Module11=initscanner
-Module12=testHandler
+Module8=testHandler
+Module9=jarUtils
+Module10=initscanner
+Module11=wpDBUtils
 Build1=Default,org.xlzbw.webplus
 NumberOfFiles=0
-NumberOfLibraries=9
+NumberOfLibraries=8
 Library1=jcore
 Library2=jserver
 Library3=json
-Library4=byteconverter
-Library5=jstringutils
-Library6=javaobject
-Library7=jsql
-Library8=jmongodb
-Library9=encryption
+Library4=jstringutils
+Library5=javaobject
+Library6=jsql
+Library7=byteconverter
+Library8=encryption
 @EndOfDesignText@
 'Non-UI application (console / server application)
 #Region Project Attributes 
 	#CommandLineArgs:
-	#MergeLibraries: false 
+	'set to false when using initscanner
+	#MergeLibraries: true 
+	'use next line when using sqlite
+'	#AdditionalJar: sqlite-jdbc-3.7.2
+	'use next line when using mysql
+	#AdditionalJar:mysql-connector-java-5.1.41-bin
+	'use next line when using oracle
+'	#AdditionalJar:oracle-ojdbc6-11.2.0.3.0
 #End Region
 
 Sub Process_Globals
@@ -45,12 +50,6 @@ Sub AppStart (Args() As String)
 	ser.Port=888
 	ser.StaticFilesFolder=G.staticFilesFolder'这个文件夹用来放js和css文件
 	autoscanner.Initialize(ser)
-'	ser.AddHandler("/test","test",False)
-'	ser.AddHandler("/menu","menuHandler",False)
-'	ser.AddHandler("/user","userHandler",False)
-	Dim ju As jarUtils
-	ju.Initialize
-	Log("ok:"&ju.GetAllClasses.Size)
 	ser.Start
 	StartMessageLoop
 End Sub
@@ -63,7 +62,11 @@ End Sub
 Sub test1
 	Dim ju As jarUtils
 	ju.Initialize
-	ju.GetAllClasses
+	Dim jo As JavaObject
+	jo=ju.getClassByName("org.xlzbw.webplus.userhandler")
+	Dim o As Object=jo.RunMethod("getClass",Null)
+	Log(o)
+	ju.getClassMethods(o)
 '	Dim m As Map
 '	m.Initialize
 '	Dim lst As List

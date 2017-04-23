@@ -13,19 +13,62 @@ Public Sub Initialize
 	jo=Me
 End Sub
 'return a list includes all classname
-Public Sub GetAllClasses As List
+Public Sub GetAllClassesNames As List
+	Dim clsList As List=GetAllClasses(getpkgName)
+	For i=0 To clsList.Size-1
+		Dim clsName As String=clsList.Get(i)
+		clsName=clsName.SubString2(clsName.LastIndexOf(".")+1,clsName.Length)
+		clsName=clsName.Replace("class ","")
+		clsList.Set(i,clsName)
+	Next
+	Return clsList
+End Sub
+Public Sub getClassProperties(cls As Object) As List
+	Dim lst As List
 	jo=Me
-'	getClasses
-'	Return jo.RunMethod("getClasses",Array As String(getpkgName))
-	Return jo.RunMethod("getClassesNames",Array As String(getpkgName))
+	lst=jo.RunMethod("getClassProperties",Array As Object(cls))
+	Return lst
+End Sub
+Public Sub getClassMethods(cls As Object) As List
+	Dim lst As List
+	jo=Me
+	lst=jo.RunMethod("getClassMethods",Array As Object(cls))
+	Return lst
+End Sub
+'you must load at least one class before using this method
+Public Sub GetAllClasses(pkgname As String) As List
+	Dim lst As List
+	jo=Me
+	lst=jo.RunMethod("getClasses",Array As Object(pkgname))
+	If lst.IsInitialized=False Or lst.Size=0 Then
+		lst.Initialize
+		Log("class list empty")
+	End If
+	Return lst
+End Sub
+Public Sub getThisClass As JavaObject
+	jo=Me
+	Return jo.RunMethod("getClass",Null)
+End Sub
+Public Sub getNativeClass(b4xClass As Object) As JavaObject
+	jo=b4xClass
+	Return jo.RunMethod("getClass",Null)
+End Sub
+Public Sub getClassByName(fullname As String) As JavaObject
+	jo=Me
+	Return jo.RunMethod("getClassByName",Array As String(fullname))
 End Sub
 'get package name of this app
 Public Sub getpkgName As String
 	jo=Me
-	Return jo.RunMethod("getpkgname2",Array As Object(jo.RunMethod("getClass",Null)))
+	Dim pkg As String=jo.RunMethod("getpkgName",Array As Object(getThisClass))
+	Log(pkg)
+	Return pkg
 End Sub
 #If java
 import java.io.File;
+import java.lang.reflect.Field;  
+import java.lang.reflect.Method;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.JarURLConnection;
@@ -38,8 +81,42 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-	public String getpkgname2(Class c){
+/** 
+     * 返回一个类的所有成员变量名列表. 
+     *  
+     * @param clazz 
+     * @return 
+     */  
+    public static List <String> getClassProperties(Class clazz) {  
+        Field[] fields = clazz.getDeclaredFields();  
+        List <String> result = new ArrayList<String>();  
+        for (int i=0; i<fields.length; i++) {  
+            String name = fields[i].getName();  
+            result.add(name);  
+        }  
+        return result;  
+    }  
+	public List<Method> getClassMethods(Class c){
+		Method m[] = c.getMethods(); // 取得全部的方法
+		List <Method> result = new ArrayList<Method>();  
+		if(m!=null){
+			for (int i=0;i<m.length;i++){
+				result.add(m[i]);
+			}
+		}
+		return result;
+	}
+	public String getpkgName(Class c){
 		return c.getPackage().getName();
+	}
+	public Class<?> getClassByName(String n){
+		try {  
+            //添加到classes  
+            return Class.forName(n); 
+        } catch (ClassNotFoundException e) {  
+            e.printStackTrace();  
+        }  
+		return null;
 	}
 /**
  * 类相关的工具类
@@ -87,6 +164,7 @@ import java.util.jar.JarFile;
         for(int i = 0; i< packageLength; i++){
             realClassLocation = realClassLocation + File.separator+packagePathSplit[i];
         }
+		BA.Log("realClassLocation:"+realClassLocation);
         File packeageDir = new File(realClassLocation);
         if(packeageDir.isDirectory()){
             String[] allClassName = packeageDir.list();
@@ -111,22 +189,29 @@ import java.util.jar.JarFile;
         //定义一个枚举的集合 并进行循环来处理这个目录下的things
         Enumeration<URL> dirs;
         try {
-            dirs = Thread.currentThread().getContextClassLoader().getResources(packageDirName);
+            dirs = Thread.currentThread().getContextClassLoader().getResources(".");
+			//dirs = Thread.currentThread().getContextClassLoader().getResources(packageDirName);
+			BA.Log("pkg:"+packageDirName+" dirs:"+dirs.toString()+" hasChild:"+dirs.hasMoreElements());
             //循环迭代下去
             while (dirs.hasMoreElements()){
                 //获取下一个元素
                 URL url = dirs.nextElement();
+				BA.Log("url:"+dirs.toString());
                 //得到协议的名称
                 String protocol = url.getProtocol();
+				BA.Log("protocol:"+protocol );
                 //如果是以文件的形式保存在服务器上
                 if ("file".equals(protocol)) {
                     //获取包的物理路径
+					BA.Log("from file:");
                     String filePath = URLDecoder.decode(url.getFile(), "UTF-8");
+					BA.Log("filePath:"+filePath);
                     //以文件的方式扫描整个包下的文件 并添加到集合中
                     findAndAddClassesInPackageByFile(packageName, filePath, recursive, classes);
                 } else if ("jar".equals(protocol)){
                     //如果是jar包文件 
                     //定义一个JarFile
+					BA.Log("from jar file:");
                     JarFile jar;
                     try {
                         //获取jar
@@ -163,87 +248,6 @@ import java.util.jar.JarFile;
                                         } catch (ClassNotFoundException e) {
                                             e.printStackTrace();
                                         }
-                                      }
-                                }
-                            }
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } 
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-       
-        return classes;
-    }
-    /**
-     * 从包package中获取所有的Class
-     * @param pack
-     * @return
-     */
-    public List<String> getClassesNames(String packageName){
-        
-        //第一个class类的集合
-        List<String> classes = new ArrayList<String>();
-        //是否循环迭代
-        boolean recursive = true;
-        //获取包的名字 并进行替换
-        String packageDirName = packageName.replace('.', '/');
-        //定义一个枚举的集合 并进行循环来处理这个目录下的things
-        Enumeration<URL> dirs;
-        try {
-            dirs = Thread.currentThread().getContextClassLoader().getResources(packageDirName);
-            //循环迭代下去
-            while (dirs.hasMoreElements()){
-                //获取下一个元素
-                URL url = dirs.nextElement();
-                //得到协议的名称
-                String protocol = url.getProtocol();
-                //如果是以文件的形式保存在服务器上
-                if ("file".equals(protocol)) {
-					BA.Log("from file");
-                    //获取包的物理路径
-                    String filePath = URLDecoder.decode(url.getFile(), "UTF-8");
-                    //以文件的方式扫描整个包下的文件 并添加到集合中
-                    findAndAddClassesInPackageByFile2(packageName, filePath, recursive, classes);
-                } else if ("jar".equals(protocol)){
-                    //如果是jar包文件 
-                    //定义一个JarFile
-					BA.Log("from jar");
-                    JarFile jar;
-                    try {
-                        //获取jar
-                        jar = ((JarURLConnection) url.openConnection()).getJarFile();
-                        //从此jar包 得到一个枚举类
-                        Enumeration<JarEntry> entries = jar.entries();
-                        //同样的进行循环迭代
-                        while (entries.hasMoreElements()) {
-                            //获取jar里的一个实体 可以是目录 和一些jar包里的其他文件 如META-INF等文件
-                            JarEntry entry = entries.nextElement();
-                            String name = entry.getName();
-                            //如果是以/开头的
-                            if (name.charAt(0) == '/') {
-                                //获取后面的字符串
-                                name = name.substring(1);
-                            }
-                            //如果前半部分和定义的包名相同
-                            if (name.startsWith(packageDirName)) {
-                                int idx = name.lastIndexOf('/');
-                                //如果以"/"结尾 是一个包
-                                if (idx != -1) {
-                                    //获取包名 把"/"替换成"."
-                                    packageName = name.substring(0, idx).replace('/', '.');
-                                }
-                                //如果可以迭代下去 并且是一个包
-                                if ((idx != -1) || recursive){
-                                    //如果是一个.class文件 而且不是目录
-                                    if (name.endsWith(".class") && !entry.isDirectory()) {
-                                        //去掉后面的".class" 获取真正的类名
-                                        String className = name.substring(packageName.length() + 1, name.length() - 6);
-										classes.add(className);
-                                       
                                       }
                                 }
                             }
@@ -301,37 +305,5 @@ import java.util.jar.JarFile;
             }
         }
     }
-	public void findAndAddClassesInPackageByFile2(String packageName, String packagePath, final boolean recursive, List<String> classes){
-        //获取此包的目录 建立一个File
-        File dir = new File(packagePath);
-        //如果不存在或者 也不是目录就直接返回
-        if (!dir.exists() || !dir.isDirectory()) {
-            return;
-        }
-        //如果存在 就获取包下的所有文件 包括目录
-        File[] dirfiles = dir.listFiles(new FileFilter() {
-        //自定义过滤规则 如果可以循环(包含子目录) 或则是以.class结尾的文件(编译好的java类文件)
-              public boolean accept(File file) {
-                return (recursive && file.isDirectory()) || (file.getName().endsWith(".class"));
-              }
-            });
-        //循环所有文件
-        for (File file : dirfiles) {
-            //如果是目录 则继续扫描
-            if (file.isDirectory()) {
-                findAndAddClassesInPackageByFile2(packageName + "." + file.getName(),
-                                      file.getAbsolutePath(),
-                                      recursive,
-                                      classes);
-            }
-            else {
-                //如果是java类文件 去掉后面的.class 只留下类名
-                String className = file.getName().substring(0, file.getName().length() - 6);
-                
-                    //添加到集合中去
-                    classes.add(className);
-               
-            }
-        }
-    }
+
 #End If
