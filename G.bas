@@ -1,5 +1,5 @@
 ﻿Type=StaticCode
-Version=5
+Version=5.45
 ModulesStructureVersion=1
 B4J=true
 @EndOfDesignText@
@@ -12,6 +12,7 @@ Sub Process_Globals
 	Public MessageDigestObj  As MessageDigest
 	Private bc As ByteConverter
 	Public staticFilesFolder As String="public",uploadFolder As String="upload"
+	Public baseCache As Map
 End Sub
 Public Sub Json(success As Boolean,data As Object) As  String
 	Dim m As Map

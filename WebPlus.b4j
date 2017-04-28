@@ -1,17 +1,18 @@
-﻿Version=5
+﻿Version=5.45
 AppType=StandardJava
-NumberOfModules=11
-Module1=userHandler
-Module2=UserFunc
-Module3=WPTemplateEngine
-Module4=G
-Module5=menuFunc
-Module6=menuHandler
-Module7=moduleFunc
-Module8=testHandler
-Module9=jarUtils
-Module10=initscanner
-Module11=wpDBUtils
+NumberOfModules=12
+Module1=wpDBUtils
+Module2=initscanner
+Module3=jarUtils
+Module4=userHandler
+Module5=G
+Module6=gfilter
+Module7=UserFunc
+Module8=WPTemplateEngine
+Module9=menuFunc
+Module10=menuHandler
+Module11=moduleFunc
+Module12=testHandler
 Build1=Default,org.xlzbw.webplus
 NumberOfFiles=0
 NumberOfLibraries=8
@@ -43,15 +44,24 @@ Sub Process_Globals
 End Sub
 
 Sub AppStart (Args() As String)
-'	test1
-'	MgoUtils.init("",0,"")'初始化数据库
 	ser.Initialize("ser")
 	G.devMode=True
 	ser.Port=888
-	ser.StaticFilesFolder=G.staticFilesFolder'这个文件夹用来放js和css文件
+	'这个文件夹用来放js和css文件
+	ser.StaticFilesFolder=G.staticFilesFolder
+	'http://www.eclipse.org/jetty/documentation/9.4.x/dos-filter.html
+	'Dos攻击拦截器
+	ser.AddDoSFilter("/*",CreateMap("maxRequestsPerSec":25))
+	'全局过滤器
+	ser.AddFilter("/*","gfilter",False)
+	'自动扫描所有handler并添加
 	autoscanner.Initialize(ser)
-'	autoscanner.test
+	'创建一个线程安全的map做基础资料缓存
+	g.baseCache=ser.CreateThreadSafeMap
+	'开启gzip
+	ser.GzipEnabled=True
 	ser.Start
+	
 	StartMessageLoop
 End Sub
 
