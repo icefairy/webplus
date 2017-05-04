@@ -1,0 +1,6 @@
+{
+ "connstr": "jdbc:mysql:\/\/127.0.0.1:3306\/webplus?characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull",
+ "dbpass": "root",
+ "dbtype": 0,
+ "dbuser": "root"
+}

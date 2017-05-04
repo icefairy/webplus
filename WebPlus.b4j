@@ -1,18 +1,21 @@
 ﻿Version=5.45
 AppType=StandardJava
-NumberOfModules=12
+NumberOfModules=15
 Module1=wpDBUtils
 Module2=initscanner
 Module3=jarUtils
 Module4=userHandler
 Module5=G
 Module6=gfilter
-Module7=UserFunc
-Module8=WPTemplateEngine
-Module9=menuFunc
-Module10=menuHandler
-Module11=moduleFunc
-Module12=testHandler
+Module7=WPTemplateEngine
+Module8=menuHandler
+Module9=moduleFunc
+Module10=testHandler
+Module11=cachemgr
+Module12=reqUtils
+Module13=userHelper
+Module14=groupHandler
+Module15=menuHelper
 Build1=Default,org.xlzbw.webplus
 NumberOfFiles=0
 NumberOfLibraries=8
@@ -45,6 +48,8 @@ End Sub
 
 Sub AppStart (Args() As String)
 	ser.Initialize("ser")
+	'初始化数据库
+	initdb
 	G.devMode=True
 	ser.Port=888
 	'这个文件夹用来放js和css文件
@@ -58,13 +63,35 @@ Sub AppStart (Args() As String)
 	autoscanner.Initialize(ser)
 	'创建一个线程安全的map做基础资料缓存
 	g.baseCache=ser.CreateThreadSafeMap
+	G.funCache=ser.CreateThreadSafeMap
+	'创建一个缓存管理器
+	ser.AddBackgroundWorker("cachemgr")
 	'开启gzip
 	ser.GzipEnabled=True
 	ser.Start
 	
 	StartMessageLoop
 End Sub
-
+Sub initdb
+	Dim dbfilename As String="dbcfg.json"
+	If File.Exists(File.DirApp,dbfilename)=False Then
+		Dim m As Map
+		m.Initialize
+		m.Put("dbtype",0)
+		m.Put("connstr",$"jdbc:mysql://127.0.0.1:3306/webplus?characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull"$)
+		m.Put("dbuser","root")
+		m.Put("dbpass","root")
+		Dim jsg As JSONGenerator
+		jsg.Initialize(m)
+		File.WriteString(File.DirApp,dbfilename,jsg.ToPrettyString(1))
+		G.mLog("数据库配置文件位于:"&File.Combine(File.DirApp,dbfilename))
+	End If
+	Dim jsp As JSONParser
+	jsp.Initialize(File.ReadString(File.DirApp,dbfilename))
+	Dim dbcfg As Map=jsp.NextObject
+	wpDBUtils.initConnectionPool(dbcfg.GetDefault("dbtype",0),dbcfg.GetDefault("connstr",""),dbcfg.GetDefault("dbuser","root"),dbcfg.GetDefault("dbpass","root"))
+	G.db=wpDBUtils.conpool.GetConnection
+End Sub
 'Return true to allow the default exceptions handler to handle the uncaught exception.
 Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	Log(Error)

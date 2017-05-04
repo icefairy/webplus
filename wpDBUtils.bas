@@ -19,7 +19,7 @@ Sub Process_Globals
 		& ".odd {background-color: #def; } .odd td {border-bottom: 1px solid #cef; }" _
 		& "a { text-decoration:none; color: #000;}"
 End Sub
-'dbtype:0=mysql connstr:jdbc:mysql://127.0.0.1:3306/dbname?characterEncoding=UTF-8;autoReconnect=true;zeroDateTimeBehavior=convertToNull
+'dbtype:0=mysql connstr:jdbc:mysql://127.0.0.1:3306/webplus?characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull
 '1=mssql connstr:jdbc:jtds:sqlserver://localhost:1433/dbname;instance=sqlexpress
 '2=oracle connstr:jdbc:oracle:thin:@127.0.0.1:1521:orcl
 Public Sub initConnectionPool(dbtype As Int,connectionStr As String,dbUser As String,dbPass As String)
@@ -36,10 +36,30 @@ Public Sub initConnectionPool(dbtype As Int,connectionStr As String,dbUser As St
 	conpool.Initialize(conCls,connectionStr,dbUser,dbPass)
 End Sub
 
-Private Sub EscapeField(f As String) As String
-	Return "[" & f & "]"
+public Sub EscapeField(f As String) As String
+	If curDbType=1 Then
+		Return "[" & f & "]"
+	Else
+		Return "`" & f & "`"
+	End If
 End Sub
-
+Public Sub ExecuteBaseMap(SQL As SQL, Query As String, StringArgs() As String) As Map
+	Dim res As Map
+	Dim cur As ResultSet
+	If StringArgs <> Null Then
+		cur = SQL.ExecQuery2(Query, StringArgs)
+	Else
+		cur = SQL.ExecQuery(Query)
+	End If
+	Log("ExecuteMap: " & Query)
+	res.Initialize
+	'	Log("cnt:"&cur.ColumnCount)
+	Do While cur.NextRow
+		res.Put(cur.GetString("ids").ToLowerCase,cur.GetString("val"))
+	Loop
+	cur.Close
+	Return res
+End Sub
 'Creates a new table with the given name.
 'FieldsAndTypes - A map with the fields names as keys and the types as values.
 'You can use the DB_... constants for the types.
@@ -94,7 +114,7 @@ Public Sub InsertMaps(SQL As SQL, TableName As String, ListOfMaps As List) As re
 			values.Initialize
 			Dim listOfValues As List
 			listOfValues.Initialize
-			sb.Append("INSERT INTO [" & TableName & "] (")
+			sb.Append("INSERT INTO " & EscapeField(TableName) & " (")
 			Dim m As Map
 			m = ListOfMaps.Get(i1)
 			For i2 = 0 To m.Size - 1
@@ -130,7 +150,12 @@ Public Sub InsertMaps(SQL As SQL, TableName As String, ListOfMaps As List) As re
 	Return ret
 	
 End Sub
-
+Public Sub InsertMap(SQL As SQL, TableName As String, m As Map) As ret
+	Dim lst As List
+	lst.Initialize
+	lst.Add(m)
+	Return InsertMaps(SQL,TableName,lst)
+End Sub
 ' updates a single field in a record
 ' Field is the column name
 Public Sub UpdateRecord(SQL As SQL, TableName As String, Field As String, NewValue As Object, _
@@ -217,7 +242,37 @@ Public Sub ExecuteMemoryTable(SQL As SQL, Query As String, StringArgs() As Strin
 	cur.Close
 	Return table
 End Sub
-
+'query list
+Public Sub ExecuteMemoryTable2(SQL As SQL, tablename As String,fields As String,WhereFieldEquals As Map, Limit As Int) As List
+	Dim cur As ResultSet
+	Dim sb As StringBuilder
+	sb.Initialize
+	Dim args As List
+	args.Initialize
+	sb.Append("select "&fields&" from "&EscapeField(tablename)&" where 1=1")
+	For i = 0 To WhereFieldEquals.Size - 1
+		If i > 0 Then
+			sb.Append(" AND ")
+		End If
+		sb.Append(EscapeField(WhereFieldEquals.GetKeyAt(i))).Append(" = ?")
+		args.Add(WhereFieldEquals.GetValueAt(i))
+	Next
+	cur = SQL.ExecQuery2(sb.ToString,args)
+	g.mLog("ExecuteMemoryTable: " & sb.ToString)
+	Dim table As List
+	table.Initialize
+	Do While cur.NextRow
+		Dim m As Map
+		m.Initialize
+		For col = 0 To cur.ColumnCount - 1
+			m.Put(cur.GetColumnName(col).ToLowerCase,cur.GetString2(col))
+		Next
+		table.Add(m)
+		If Limit > 0 And table.Size >= Limit Then Exit
+	Loop
+	cur.Close
+	Return table
+End Sub
 'Executes the query and returns a Map with the column names as the keys 
 'and the first record values As the entries values.
 'The keys are lower cased.
@@ -244,32 +299,6 @@ Public Sub ExecuteMap(SQL As SQL, Query As String, StringArgs() As String) As Ma
 	Return res
 End Sub
 
-
-'
-'Public Sub ExecuteTableView(SQL As SQL, Query As String, StringArgs() As String, Limit As Int, _
-'	TableView1 As TableView)
-'	TableView1.Items.Clear
-'	Dim cur As ResultSet
-'	If StringArgs = Null Then
-'		Dim StringArgs(0) As String
-'	End If
-'	cur = SQL.ExecQuery2(Query, StringArgs)
-'	Dim cols As List
-'	cols.Initialize
-'	For i = 0 To cur.ColumnCount - 1
-'		cols.Add(cur.GetColumnName(i))
-'	Next
-'	TableView1.SetColumns(cols)
-'	Do While cur.NextRow
-'		Dim values(cur.ColumnCount) As String
-'		For col = 0 To cur.ColumnCount - 1
-'			values(col) = cur.GetString2(col)
-'		Next
-'		TableView1.Items.Add(values)
-'		If Limit > 0 And TableView1.Items.Size >= Limit Then Exit
-'	Loop
-'	cur.Close
-'End Sub
 
 'Creates a html text that displays the data in a table.
 'The style of the table can be changed by modifying HtmlCSS variable.

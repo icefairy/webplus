@@ -6,25 +6,28 @@ B4J=true
 
 Sub Class_Globals
 	Private te As WPTemplateEngine
-	Public actionkey As String="/user"
+	Public actionkey As String="/user/*"
 End Sub
 
 Public Sub Initialize
-'	UserFunc.Initialize
 	te.Initialize
 End Sub
 
 Sub Handle(req As ServletRequest, resp As ServletResponse)
 	te.bindResponse(resp)
-	resp.Write("user handler")
+	Dim routes() As String= G.url2Array(req.RequestURI)
+	If SubExists(Me,routes(1)) Then
+		CallSub3(Me,routes(1),req,resp)
+	else If SubExists(Me,"api_"&routes(1)) Then
+		CallSub3(Me,"api_"&routes(1),req,resp)
+	Else
+		unknowaction(req,resp)
+	End If
 	Return
-'	Dim reqmap As Map=moduleFunc.getAllModule(req)
-'	Log(reqmap.GetDefault(G.action,""))
-'	Select req.GetParameter(g.action)
-'		Case "checkuser"
-'			resp.Write(G.Json(True,	UserFunc.getUserByAny("name",reqmap.GetDefault("username",""))))
-'		Case Else
-'			resp.Write(G.Json(True,UserFunc.getUserList))
-'	End Select
-'	
+End Sub
+Sub add(req As ServletRequest,resp As ServletResponse)
+	te.renderText("action add:"&req.RequestURI)
+End Sub
+Sub unknowaction(req As ServletRequest,resp As ServletResponse)
+	te.renderText("unknow:"&req.RequestURI)
 End Sub

@@ -12,7 +12,10 @@ Sub Process_Globals
 	Public MessageDigestObj  As MessageDigest
 	Private bc As ByteConverter
 	Public staticFilesFolder As String="public",uploadFolder As String="upload"
-	Public baseCache As Map
+	Public baseCache,funCache As Map
+	Public reloadbasemaptime As Int=60
+	Public addFunctionAuto As Boolean=True '是否自动添加接口
+	Public db As SQL
 End Sub
 Public Sub Json(success As Boolean,data As Object) As  String
 	Dim m As Map
@@ -34,6 +37,7 @@ Public Sub urlDecode(u As String) As String
 End Sub
 '用/拆分url
 Public Sub url2Array(u As String) As String()
+	If u.StartsWith("/") Then u=u.SubString(1)
 	Return Regex.Split("/",u)
 End Sub
 '将只读map转换成可读写map
