@@ -29,3 +29,6 @@ End Sub
 Public Sub find(id As Int) As Map
 	Return wpDBUtils.ExecuteMap(G.db,"select * from "&wpDBUtils.EscapeField(tbName)&" where id=?",Array As String(id))
 End Sub
+Public Sub list(kv As Map) As List
+	Return 	wpDBUtils.ExecuteMemoryTable2(G.db,tbName,"*",kv,0)
+End Sub
