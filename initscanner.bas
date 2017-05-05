@@ -45,6 +45,7 @@ Public Sub Initialize(ser As Server)
 	
 End Sub
 Private Sub printStartCmdLine
+	File.WriteString(File.DirApp,"webplus.pid",jr.GetCurrentPid)
 	If File.Exists(File.DirApp,"webplusstarter.bat")=False Then
 		'如果启动脚本不存在则进入生成环节
 		Dim srcpath As String=jr.SrcPath.ToLowerCase
@@ -58,8 +59,7 @@ cd /d %~dp0
 set curpath=%cd%
 echo "enter work dir:%curpath%"
 echo "kill java.exe"
-@taskkill /f /im java.exe
-@taskkill /f /im javaw.exe
+for /f "tokens=1" %%i in (webplus.pid) do taskkill /f /im %%i
 echo "clean old logs"
 del logs /s /f /q
 "$)
@@ -100,7 +100,7 @@ del logs /s /f /q
 			End Try
 			
 		End If
-		sb.Append("echo ""webplus project start ok""").Append(CRLF).Append("pause")
+		sb.Append("echo ""webplus project run completed ok""").Append(CRLF).Append("pause")
 		Dim tw As TextWriter
 		tw.Initialize2(File.OpenOutput(File.DirApp,"webplusstarter.bat",False),"GBK")
 		tw.WriteLine(sb.ToString)

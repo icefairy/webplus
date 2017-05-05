@@ -93,6 +93,13 @@ Public Sub getpkgName As String
 	Dim pkg As String=jo.RunMethod("getpkgName",Array As Object(getThisClass))
 	Return pkg
 End Sub
+Public Sub GetCurrentPid As Int
+	Dim jo As JavaObject
+	jo=jo.InitializeStatic("java.lang.management.ManagementFactory").RunMethodJO("getRuntimeMXBean",Null)
+	Dim name As String=jo.RunMethod("getName",Null)
+	Dim ns() As String=Regex.Split("@",name)
+	Return ns(0)
+End Sub
 
 #If java
 import java.io.File;
