@@ -1,4 +1,4 @@
-﻿Version=5.45
+﻿Version=5.51
 AppType=StandardJava
 NumberOfModules=15
 Module1=userHandler
@@ -9,8 +9,8 @@ Module5=groupHandler
 Module6=cachemgr
 Module7=G
 Module8=menuHelper
-Module9=initscanner
-Module10=jarUtils
+Module9=jarUtils
+Module10=initscanner
 Module11=WPTemplateEngine
 Module12=menuHandler
 Module13=moduleFunc

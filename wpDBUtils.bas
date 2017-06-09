@@ -1,11 +1,11 @@
 ﻿Type=StaticCode
-Version=5.45
+Version=5.51
 ModulesStructureVersion=1
 B4J=true
 @EndOfDesignText@
 'version 1.01
 Sub Process_Globals
-	Type ret (success As Boolean,msg As String)
+	Type dbOptret (success As Boolean,msg As String)
 	Public conpool As ConnectionPool
 	Private curDbType As Int=0
 	Public DB_REAL, DB_INTEGER, DB_BLOB, DB_TEXT As String
@@ -26,16 +26,19 @@ Public Sub initConnectionPool(dbtype As Int,connectionStr As String,dbUser As St
 	curDbType=dbtype
 	Dim conCls As String=""
 	Select dbtype
-	Case 0
+		Case 0
 			conCls="com.mysql.jdbc.Driver"
-	Case 1
+		Case 1
 			conCls="net.sourceforge.jtds.jdbc.Driver"
-	Case 2
+		Case 2
 			conCls="oracle.jdbc.driver.OracleDriver"
 	End Select
 	conpool.Initialize(conCls,connectionStr,dbUser,dbPass)
 End Sub
-
+'dbtype:0=mysql 1=mssql 2=oracle
+Public Sub setDbType(dbt As Int)
+	curDbType=dbt
+End Sub
 public Sub EscapeField(f As String) As String
 	If curDbType=1 Then
 		Return "[" & f & "]"
@@ -95,9 +98,9 @@ End Sub
 'ListOfMaps - A list with maps as items. Each map represents a record where the map keys are the columns names
 'and the maps values are the values.
 'Note that you should create a new map for each record (this can be done by calling Dim to redim the map).
-Public Sub InsertMaps(SQL As SQL, TableName As String, ListOfMaps As List) As ret
+Public Sub InsertMaps(SQL As SQL, TableName As String, ListOfMaps As List) As dbOptret
 	Dim sb, columns, values As StringBuilder
-	Dim ret As ret
+	Dim ret As dbOptret
 	ret.Initialize
 	'Small check for a common error where the same map is used in a loop
 	If ListOfMaps.Size > 1 And ListOfMaps.Get(0) = ListOfMaps.Get(1) Then
@@ -119,7 +122,7 @@ Public Sub InsertMaps(SQL As SQL, TableName As String, ListOfMaps As List) As re
 			m = ListOfMaps.Get(i1)
 			For i2 = 0 To m.Size - 1
 				Dim col As String
-				Dim value As Object	
+				Dim value As Object
 				col = m.GetKeyAt(i2)
 				value = m.GetValueAt(i2)
 				If i2 > 0 Then
@@ -150,7 +153,7 @@ Public Sub InsertMaps(SQL As SQL, TableName As String, ListOfMaps As List) As re
 	Return ret
 	
 End Sub
-Public Sub InsertMap(SQL As SQL, TableName As String, m As Map) As ret
+Public Sub InsertMap(SQL As SQL, TableName As String, m As Map) As dbOptret
 	Dim lst As List
 	lst.Initialize
 	lst.Add(m)
@@ -207,7 +210,7 @@ Public Sub UpdateRecord2(SQL As SQL, TableName As String, Fields As Map, WhereFi
     
 	sb.Append(" WHERE ")
 	For i = 0 To WhereFieldEquals.Size - 1
-		If i > 0 Then 
+		If i > 0 Then
 			sb.Append(" AND ")
 		End If
 		sb.Append(EscapeField(WhereFieldEquals.GetKeyAt(i))).Append(" = ?")
@@ -223,7 +226,7 @@ End Sub
 'Limit - Limits the results. Pass 0 for all results.
 Public Sub ExecuteMemoryTable(SQL As SQL, Query As String, StringArgs() As String, Limit As Int) As List
 	Dim cur As ResultSet
-	If StringArgs = Null Then 
+	If StringArgs = Null Then
 		Dim StringArgs(0) As String
 	End If
 	cur = SQL.ExecQuery2(Query, StringArgs)
@@ -280,7 +283,7 @@ End Sub
 Public Sub ExecuteMap(SQL As SQL, Query As String, StringArgs() As String) As Map
 	Dim res As Map
 	Dim cur As ResultSet
-	If StringArgs <> Null Then 
+	If StringArgs <> Null Then
 		cur = SQL.ExecQuery2(Query, StringArgs)
 	Else
 		cur = SQL.ExecQuery(Query)
@@ -304,7 +307,7 @@ End Sub
 'The style of the table can be changed by modifying HtmlCSS variable.
 Public Sub ExecuteHtml(SQL As SQL, Query As String, StringArgs() As String, Limit As Int) As String
 	Dim cur As ResultSet
-	If StringArgs <> Null Then 
+	If StringArgs <> Null Then
 		cur = SQL.ExecQuery2(Query, StringArgs)
 	Else
 		cur = SQL.ExecQuery(Query)
@@ -320,13 +323,13 @@ Public Sub ExecuteHtml(SQL As SQL, Query As String, StringArgs() As String, Limi
 	Next
 	sb.Append("</thead>")
 	
-'	For i = 0 To cur.ColumnCount - 1
-'		If i = 1 Then
-'			sb.Append("<th style='width:200px;'>").Append(cur.GetColumnName(i)).Append("</th>")
-'		Else
-'			sb.Append("<th>").Append(cur.GetColumnName(i)).Append("</th>")
-'		End If
-'	Next
+	'	For i = 0 To cur.ColumnCount - 1
+	'		If i = 1 Then
+	'			sb.Append("<th style='width:200px;'>").Append(cur.GetColumnName(i)).Append("</th>")
+	'		Else
+	'			sb.Append("<th>").Append(cur.GetColumnName(i)).Append("</th>")
+	'		End If
+	'	Next
 		
 	sb.Append("</tr>").Append(CRLF)
 	Dim row As Int
@@ -350,20 +353,37 @@ Public Sub ExecuteHtml(SQL As SQL, Query As String, StringArgs() As String, Limi
 End Sub
 
 Public Sub DeleteRecord(SQL As SQL, TableName As String, WhereFieldEquals As Map)
-   Dim sb As StringBuilder
-   sb.Initialize
-   sb.Append("DELETE FROM [").Append(TableName).Append("] WHERE ")
-   If WhereFieldEquals.Size = 0 Then
+	Dim sb As StringBuilder
+	sb.Initialize
+	sb.Append("DELETE FROM ").Append(EscapeField(TableName)).Append(" WHERE ")
+	If WhereFieldEquals.Size = 0 Then
 		g.mLog("WhereFieldEquals map empty!")
-      Return
-   End If
-   Dim args As List
-   args.Initialize
-   For i = 0 To WhereFieldEquals.Size - 1
-      If i > 0 Then sb.Append(" AND ")
-      sb.Append("[").Append(WhereFieldEquals.GetKeyAt(i)).Append("] = ?")
-      args.Add(WhereFieldEquals.GetValueAt(i))
-   Next
+		Return
+	End If
+	Dim args As List
+	args.Initialize
+	For i = 0 To WhereFieldEquals.Size - 1
+		If i > 0 Then sb.Append(" AND ")
+		sb.Append(EscapeField(WhereFieldEquals.GetKeyAt(i))).Append(" = ?")
+		args.Add(WhereFieldEquals.GetValueAt(i))
+	Next
 	g.mLog("DeleteRecord: " & sb.ToString)
-   SQL.ExecNonQuery2(sb.ToString, args)
+	SQL.ExecNonQuery2(sb.ToString, args)
 End Sub
+#Region alias
+Public Sub QueryOne(SQL As SQL, Query As String, StringArgs() As String) As Map
+	Return ExecuteMap(SQL,Query,StringArgs)
+End Sub
+Public Sub QueryList(SQL As SQL, Query As String, StringArgs() As String, Limit As Int) As List
+	Return ExecuteMemoryTable(SQL, Query, StringArgs, Limit)
+End Sub
+Public Sub QueryList2(SQL As SQL, tablename As String,fields As String,WhereFieldEquals As Map, Limit As Int) As List
+	Return ExecuteMemoryTable2(SQL,tablename,fields,WhereFieldEquals,Limit)
+End Sub
+Public Sub InsertOne(SQL As SQL, TableName As String, m As Map) As dbOptret
+	Return InsertMap(SQL,TableName,m)
+End Sub
+Public Sub InsertList(SQL As SQL, TableName As String, ListOfMaps As List) As dbOptret
+	Return InsertMaps(SQL,TableName,ListOfMaps)
+End Sub
+#End Region
