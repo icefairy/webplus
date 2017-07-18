@@ -66,6 +66,7 @@ Sub AppStart (Args() As String)
 	G.funCache=ser.CreateThreadSafeMap
 	'创建一个缓存管理器
 	setSessionExpireTime(ser,"webplus")
+	ServerUsePersistentSessions(ser,File.DirApp,10,True)
 	ser.AddBackgroundWorker("cachemgr")
 	'开启gzip
 	ser.GzipEnabled=True
@@ -73,6 +74,29 @@ Sub AppStart (Args() As String)
 	
 	StartMessageLoop
 End Sub
+'设置session存到文件
+'Sets the server to use persisten sessions saved on the disk rather then in memory
+Public Sub ServerUsePersistentSessions(ServerObject As Server, StoreDirectory As String, SavePeriod As Int, LazyLoad As Boolean)
+	If ServerObject <> Null Then
+		Dim joMe As JavaObject = Me
+		joMe.RunMethod("initializeSessionStoreDirectory", Array(StoreDirectory))
+		Dim joServer As JavaObject = ServerObject
+		joServer.GetFieldJO("context").RunMethodJO("getSessionHandler", Null).RunMethodJO("getSessionManager", Null).RunMethod("setStoreDirectory", Array(joMe.GetFieldJO("sessionStoreDirectory")))
+		joServer.GetFieldJO("context").RunMethodJO("getSessionHandler", Null).RunMethodJO("getSessionManager", Null).RunMethod("setSavePeriod", Array(SavePeriod))
+		joServer.GetFieldJO("context").RunMethodJO("getSessionHandler", Null).RunMethodJO("getSessionManager", Null).RunMethod("setLazyLoad", Array(LazyLoad))
+		joServer.GetFieldJO("context").RunMethodJO("getSessionHandler", Null).RunMethodJO("getSessionManager", Null).RunMethod("restoreSessions", Null)
+	End If
+End Sub
+
+#IF JAVA
+import java.io.File;
+
+public static File sessionStoreDirectory;
+
+public static void initializeSessionStoreDirectory(String pathname) {
+    sessionStoreDirectory = new File(pathname);
+}
+#END IF
 '设置session过期时间
 Sub setSessionExpireTime(s As Server,appname As String)
 	Dim joServer As JavaObject = s
