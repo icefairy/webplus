@@ -1,4 +1,4 @@
-﻿Version=5.51
+﻿Version=5.75
 AppType=StandardJava
 NumberOfModules=15
 Module1=userHandler
@@ -65,12 +65,27 @@ Sub AppStart (Args() As String)
 	g.baseCache=ser.CreateThreadSafeMap
 	G.funCache=ser.CreateThreadSafeMap
 	'创建一个缓存管理器
+	setSessionExpireTime(ser,"webplus")
 	ser.AddBackgroundWorker("cachemgr")
 	'开启gzip
 	ser.GzipEnabled=True
 	ser.Start
 	
 	StartMessageLoop
+End Sub
+'设置session过期时间
+Sub setSessionExpireTime(s As Server,appname As String)
+	Dim joServer As JavaObject = s
+	joServer.GetFieldJO("server").RunMethod("stop", Null)
+	joServer.GetFieldJO("context").RunMethodJO("getSessionHandler", Null).RunMethodJO("getSessionCookieConfig", Null).RunMethod("setMaxAge", Array(31536000)) ' 1 year
+   
+	' NEW FEATURE! Each App has its own Session Cookie
+	joServer.GetFieldJO("context").RunMethodJO("getSessionHandler", Null).RunMethodJO("getSessionCookieConfig", Null).RunMethod("setName", Array(appname))
+	joServer.GetFieldJO("server").RunMethod("start", Null)
+
+	' This setting is with reservation until confirmation
+	Dim secs As Long = 31536000 ' must be defined as a long, else you get a 'java.lang.RuntimeException: Method: setIntervalSec not matched.' error
+	joServer.GetFieldJO("context").RunMethodJO("getSessionHandler", Null).RunMethodJO("getSessionIdManager", Null).RunMethodJO("getSessionHouseKeeper", Null).RunMethod("setIntervalSec", Array As Object(secs))
 End Sub
 Sub initdb
 	Dim dbfilename As String="dbcfg.json"
