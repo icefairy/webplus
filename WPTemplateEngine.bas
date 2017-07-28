@@ -1,5 +1,5 @@
 ﻿Type=Class
-Version=5.75
+Version=5.8
 ModulesStructureVersion=1
 B4J=true
 @EndOfDesignText@
@@ -114,7 +114,7 @@ Private Sub getTPLContent(TPLFilePath As String) As String
 		tmp0=processMapVar(tmp0)
 		tmp0=processVar(tmp0)
 	Else
-		Log("Error:TPLFile:"&getTPLPath& TPLFilePath&" Not exist!")
+		Log("Error:TPLFile:"&File.Combine(getTPLPath,TPLFilePath)&" Not exist!")
 	End If
 	Return tmp0
 End Sub

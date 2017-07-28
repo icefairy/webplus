@@ -1,6 +1,6 @@
-﻿Version=5.75
+﻿Version=5.8
 AppType=StandardJava
-NumberOfModules=15
+NumberOfModules=16
 Module1=userHandler
 Module2=userHelper
 Module3=wpDBUtils
@@ -11,14 +11,15 @@ Module7=G
 Module8=menuHelper
 Module9=jarUtils
 Module10=initscanner
-Module11=WPTemplateEngine
-Module12=menuHandler
-Module13=moduleFunc
-Module14=testHandler
-Module15=reqUtils
+Module11=weihu
+Module12=WPTemplateEngine
+Module13=menuHandler
+Module14=moduleFunc
+Module15=testHandler
+Module16=reqUtils
 Build1=Default,org.xlzbw.webplus
 NumberOfFiles=0
-NumberOfLibraries=8
+NumberOfLibraries=10
 Library1=jcore
 Library2=jserver
 Library3=json
@@ -27,6 +28,8 @@ Library5=javaobject
 Library6=jsql
 Library7=byteconverter
 Library8=encryption
+Library9=skeleton
+Library10=jsonplus
 @EndOfDesignText@
 'Non-UI application (console / server application)
 #Region Project Attributes 
@@ -65,8 +68,9 @@ Sub AppStart (Args() As String)
 	g.baseCache=ser.CreateThreadSafeMap
 	G.funCache=ser.CreateThreadSafeMap
 	'创建一个缓存管理器
-	setSessionExpireTime(ser,"webplus")
-	ServerUsePersistentSessions(ser,File.DirApp,10,True)
+'	setSessionExpireTime(ser,"webplus")
+'	ServerUsePersistentSessions(ser,File.DirApp,10,True)
+ser.AddBackgroundWorker("weihu")
 	ser.AddBackgroundWorker("cachemgr")
 	'开启gzip
 	ser.GzipEnabled=True

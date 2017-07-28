@@ -1,8 +1,27 @@
 ﻿# Host: localhost  (Version: 5.5.53)
-# Date: 2017-05-04 17:58:43
+# Date: 2017-07-28 16:33:31
 # Generator: MySQL-Front 5.3  (Build 4.234)
 
 /*!40101 SET NAMES utf8 */;
+
+#
+# Structure for table "test"
+#
+
+DROP TABLE IF EXISTS `test`;
+CREATE TABLE `test` (
+  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  `line` varchar(255) DEFAULT NULL,
+  `dt` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`Id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1001 DEFAULT CHARSET=utf8;
+
+#
+# Data for table "test"
+#
+
+/*!40000 ALTER TABLE `test` DISABLE KEYS */;
+/*!40000 ALTER TABLE `test` ENABLE KEYS */;
 
 #
 # Structure for table "wp_department"
@@ -54,13 +73,13 @@ CREATE TABLE `wp_function` (
   `create` datetime DEFAULT NULL COMMENT '创建时间',
   `update` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COMMENT='功能列表';
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8 COMMENT='功能列表';
 
 #
 # Data for table "wp_function"
 #
 
-INSERT INTO `wp_function` VALUES (1,'用户管理','',0,0,'2017-05-04 13:26:57',NULL),(2,'更新用户','/user/update',1,0,'2017-05-04 13:27:03',NULL),(3,'创建用户','/user/save',1,0,'2017-05-04 13:27:12',NULL),(4,'删除用户','/user/delete',1,0,'2017-05-04 13:27:18',NULL),(5,'用户列表','/user/list',1,0,'2017-05-04 13:29:10',NULL),(6,'查询用户','/user/find',1,0,'2017-05-04 13:29:23',NULL),(7,'分组管理',NULL,0,0,'2017-05-04 15:01:27',NULL),(8,'菜单管理','',0,0,'2017-05-04 15:02:13',NULL),(9,'创建菜单','/menu/save',8,0,'2017-05-04 15:03:38',NULL),(10,'更新菜单','/menu/update',8,0,'2017-05-04 15:03:42',NULL),(11,'菜单列表','/menu/list',8,0,'2017-05-04 15:03:47',NULL),(12,'删除菜单','/menu/delete',8,0,'2017-05-04 15:04:02',NULL),(13,'删除分组','/group/delete',7,0,'2017-05-04 15:21:37',NULL),(14,'创建分组','/group/save',7,0,'2017-05-04 15:24:03',NULL),(15,'更新分组','/group/update',7,0,'2017-05-04 15:24:40',NULL),(16,'分组列表','/group/list',7,0,'2017-05-04 15:25:02',NULL);
+INSERT INTO `wp_function` VALUES (1,'用户管理','',0,0,'2017-05-04 13:26:57',NULL),(2,'更新用户','/user/update',1,0,'2017-05-04 13:27:03',NULL),(3,'创建用户','/user/save',1,0,'2017-05-04 13:27:12',NULL),(4,'删除用户','/user/delete',1,0,'2017-05-04 13:27:18',NULL),(5,'用户列表','/user/list',1,0,'2017-05-04 13:29:10',NULL),(6,'查询用户','/user/find',1,0,'2017-05-04 13:29:23',NULL),(7,'分组管理',NULL,0,0,'2017-05-04 15:01:27',NULL),(8,'菜单管理','',0,0,'2017-05-04 15:02:13',NULL),(9,'创建菜单','/menu/save',8,0,'2017-05-04 15:03:38',NULL),(10,'更新菜单','/menu/update',8,0,'2017-05-04 15:03:42',NULL),(11,'菜单列表','/menu/list',8,0,'2017-05-04 15:03:47',NULL),(12,'删除菜单','/menu/delete',8,0,'2017-05-04 15:04:02',NULL),(13,'删除分组','/group/delete',7,0,'2017-05-04 15:21:37',NULL),(14,'创建分组','/group/save',7,0,'2017-05-04 15:24:03',NULL),(15,'更新分组','/group/update',7,0,'2017-05-04 15:24:40',NULL),(16,'分组列表','/group/list',7,0,'2017-05-04 15:25:02',NULL),(17,'unknow function','/',0,0,'2017-07-28 15:44:59',NULL),(18,'unknow function','/jetty-dir.css',0,0,'2017-07-28 15:44:59',NULL),(19,'unknow function','/favicon.ico',0,0,'2017-07-28 15:44:59',NULL),(20,'unknow function','/user/test',0,0,'2017-07-28 15:45:07',NULL),(21,'unknow function','/default/layui/layui.js',0,0,'2017-07-28 15:49:21',NULL),(22,'unknow function','/js/jquery.min.js',0,0,'2017-07-28 15:49:21',NULL),(23,'unknow function','/default/layui/css/layui.css',0,0,'2017-07-28 15:49:22',NULL),(24,'unknow function','/default/layui/lay/modules/layer.js',0,0,'2017-07-28 15:49:22',NULL),(25,'unknow function','/default/layui/css/modules/layer/default/layer.css',0,0,'2017-07-28 15:49:22',NULL),(26,'unknow function','/default/layui/lay/modules/form.js',0,0,'2017-07-28 15:49:22',NULL),(27,'unknow function','/user/test2',0,0,'2017-07-28 16:11:12',NULL),(28,'unknow function','/default/layui/lay/modules/laytpl.js',0,0,'2017-07-28 16:16:07',NULL);
 
 #
 # Structure for table "wp_group"

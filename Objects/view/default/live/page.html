@@ -1,0 +1,27 @@
+{# include "/header" #}
+<center>
+<div id="body" class="layui-textarea">
+	<p>for循环演示
+		<table class="layui-table">
+			<tr><td>ID</td><td>line</td><td>创建时间</td></tr>
+		{# for item in lst #}
+			<tr><td>{# item.id #}</td>
+			<td>{# item.line #}</td><td>{# item.dt #}</td></tr>
+		{# endfor #}
+		</table>
+	</p>
+
+	<hr>
+	<button class="layui-btn" onclick="layer.msg('玩命提示中');">show layer</button>
+</div>
+<script>
+ 
+//一般直接写在一个js文件中
+layui.use(['layer', 'form'], function(){
+  var layer = layui.layer
+  ,form = layui.form();
+  
+});
+</script> 
+</center>
+

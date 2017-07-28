@@ -1,5 +1,5 @@
 ﻿Type=Class
-Version=5.75
+Version=5.8
 ModulesStructureVersion=1
 B4J=true
 @EndOfDesignText@
@@ -30,4 +30,36 @@ Sub add(req As ServletRequest,resp As ServletResponse)
 End Sub
 Sub unknowaction(req As ServletRequest,resp As ServletResponse)
 	te.renderText("unknow:"&req.RequestURI)
+End Sub
+'这里演示分页数据获取
+Sub test(req As ServletRequest,resp As ServletResponse)
+	Dim m As Map=reqUtils.getReqMap(req)
+	Dim pn As Int=m.GetDefault("pn",1)
+	Dim ps As Int=m.GetDefault("ps",10)
+	Dim start As Int=(pn-1)*ps
+	If start<0 Then start=0
+	Dim lst As List=wpDBUtils.ExecuteMemoryTable(G.db,$"select * from test limit ${start},${ps}"$,Null,0)
+	te.putData("lst",lst)
+	te.putData("title","tt")
+'	te.putData("headertitle","tt")
+	te.renderTPL("live/page")
+End Sub
+'这个使用laytpl进行前端渲染
+Sub test2(req As ServletRequest,resp As ServletResponse)
+	Dim m As Map=reqUtils.getReqMap(req)
+	Dim pn As Int=m.GetDefault("pn",1)
+	Dim ps As Int=m.GetDefault("ps",10)
+	Dim start As Int=(pn-1)*ps
+	If start<0 Then start=0
+	Dim lst As List=wpDBUtils.ExecuteMemoryTable(G.db,$"select * from test limit ${start},${ps}"$,Null,0)
+	te.putData("lst",lst)
+	te.putData("title","tt")
+	Dim r As Map
+	r.Initialize
+	r.Put("lst",lst)
+	Dim jsg As JSONGenerator2
+	jsg.Initialize(r)
+	te.putData("jss",jsg.ToString)
+	Log(jsg.ToString)
+	te.renderTPL("live/page2")
 End Sub
