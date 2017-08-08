@@ -37,7 +37,9 @@ Public Sub Initialize
 End Sub
 Private Sub initgmap
 	gMap.Initialize
-	gMap.Put("headertitle","WebPlus演示")
+	gMap.Put("headertitle","考评系统")
+	gMap.Put("keywords","怡利科技 领导考评系统")
+	gMap.Put("description","怡利科技 领导考评系统")
 	gMap.Put("themedir","/"&ThemeName)
 	gMap.Put("uploaddir","/"&G.uploadFolder)
 End Sub
@@ -112,9 +114,10 @@ Private Sub getTPLContent(TPLFilePath As String) As String
 		tmp0=processIF(tmp0)
 		tmp0=processFOR(tmp0)
 		tmp0=processMapVar(tmp0)
-		tmp0=processVar(tmp0)
+		tmp0=ReplaceMap(tmp0,gMap)
+'		tmp0=processVar(tmp0)
 	Else
-		Log("Error:TPLFile:"&File.Combine(getTPLPath,TPLFilePath)&" Not exist!")
+		Log("Error:TPLFile:"&getTPLPath& TPLFilePath&" Not exist!")
 	End If
 	Return tmp0
 End Sub
@@ -123,12 +126,12 @@ Private Sub processFOR(tmpinput As String) As String
 	Dim tmp0 As String=tmpinput
 	Dim sb As StringBuilder
 	sb.Initialize
-	Dim signs(2) As String=Array As String("{# for ","{# endfor #}")
+	Dim signs(2) As String=Array As String("_# for ","_# endfor #_")
 	Dim flg As String=G.getText2(tmp0,signs(0),signs(1))
 	Do While flg.Length>0
 		Dim match0 As String=G.getText2(tmp0,signs(0),signs(1))
-'		g.mLog(match0)
-		Dim forhead As String=G.getText(match0,signs(0),"#}",True).Trim
+		'		g.mLog(match0)
+		Dim forhead As String=G.getText(match0,signs(0),"#_",True).Trim
 		Dim itemname As String=forhead.SubString2(0,forhead.IndexOf(" in ")).Trim
 		Dim tplcontent As String=match0.SubString2(forhead.Length+signs(0).Length+4,match0.Length-signs(1).Length)
 		Dim listname As String=forhead.SubString(forhead.IndexOf("in ")+3).Trim
@@ -146,26 +149,49 @@ Private Sub processFOR(tmpinput As String) As String
 					G.mLog("tmplist size:0")
 				End If
 			End If
-			tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,sb.ToString)
+			tmp0=Regex.Replace(match0,tmp0,sb.ToString)
 		Else
-			tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,"")
+			tmp0=Regex.Replace(match0,tmp0,"")
 		End If
 		flg=G.getText2(tmp0,signs(0),signs(1))
 	Loop
 	Return tmp0
 End Sub
+
+Public Sub ReplaceMap(Base As String, Replacements As Map) As String
+	Dim pattern As StringBuilder
+	pattern.Initialize
+	For Each k As String In Replacements.Keys
+		If pattern.Length > 0 Then pattern.Append("|")
+		pattern.Append("\$").Append(k).Append("\$")
+	Next
+	Dim m As Matcher = Regex.Matcher(pattern.ToString, Base)
+	Dim result As StringBuilder
+	result.Initialize
+	Dim lastIndex As Int
+	Do While m.Find
+		result.Append(Base.SubString2(lastIndex, m.GetStart(0)))
+		Dim replace As String = Replacements.Get(m.Match.SubString2(1, m.Match.Length - 1))
+		If m.Match.ToLowerCase.StartsWith("$h_") Then replace = EscapeHtml(replace)
+		result.Append(replace)
+		lastIndex = m.GetEnd(0)
+	Loop
+	If lastIndex < Base.Length Then result.Append(Base.SubString(lastIndex))
+	Return result.ToString
+End Sub
+
 '解析IF条件语句
 Private Sub processIF(tmpinput As String) As String
 	Dim tmp0 As String=tmpinput
-	Dim signs(2) As String=Array As String("{# if ","{# endif #}","{# else #}")
+	Dim signs(2) As String=Array As String("_# if ","_# endif #_","_# else #_")
 	Dim flg As String=G.getText2(tmp0,signs(0),signs(1))
 	Do While flg.Length>0
 		Dim match0 As String=G.getText2(tmp0,signs(0),signs(1))
-'		Log(match0)
-'		tmp0=tmp0.Replace(replaceRegexSpecal(signs(0)),"").Replace(replaceRegexSpecal(signs(1)),"")
-		Dim tiaojian As String=G.getText(match0,signs(0),"#}",True).Trim
-		Dim ifelsestrs() As String=Regex.Split(replaceRegexSpecal(signs(2)),match0)
-		Dim iftrue As String=ifelsestrs(0).SubString(ifelsestrs(0).IndexOf("#}")+2)
+		'		Log(match0)
+		'		tmp0=tmp0.Replace(replaceRegexSpecal(signs(0)),"").Replace(replaceRegexSpecal(signs(1)),"")
+		Dim tiaojian As String=G.getText(match0,signs(0),"#_",True).Trim
+		Dim ifelsestrs() As String=Regex.Split(signs(2),match0)
+		Dim iftrue As String=ifelsestrs(0).SubString(ifelsestrs(0).IndexOf("#_")+2)
 		Dim iffalse As String
 		If ifelsestrs.Length>1 Then
 			iffalse=ifelsestrs(1).SubString2(0,ifelsestrs(1).Length-11)
@@ -182,28 +208,28 @@ Private Sub processIF(tmpinput As String) As String
 				Dim val As String=pds(1).Replace(QUOTE,"")
 				If val.CompareTo(mapData.GetDefault(pds(0),""))=0 Then
 					'条件成立
-					tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,replaceRegexSpecal(iftrue))
+					tmp0=Regex.Replace(match0,tmp0,iftrue)
 				Else
 					'条件不成立
-					tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,iffalse)
+					tmp0=Regex.Replace(match0,tmp0,iffalse)
 				End If
 			Else
 				'数值判断
 				Dim mathval As Int=pds(1)
 				If mapData.GetDefault(pds(0),0)=mathval Then
 					'条件成立
-					tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,replaceRegexSpecal(iftrue))
+					tmp0=Regex.Replace(match0,tmp0,iftrue)
 				Else
 					'条件不成立
-					tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,iffalse)
+					tmp0=Regex.Replace(match0,tmp0,iffalse)
 				End If
 			End If
 		Else
 			'逻辑值判断
 			If mapData.GetDefault(tiaojian,0)=1 Then
-				tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,replaceRegexSpecal(iftrue))
+				tmp0=Regex.Replace(match0,tmp0,iftrue)
 			Else
-				tmp0=Regex.Replace(replaceRegexSpecal(match0),tmp0,iffalse)			
+				tmp0=Regex.Replace(match0,tmp0,iffalse)
 			End If
 		End If
 		flg=G.getText2(tmp0,signs(0),signs(1))
@@ -212,15 +238,15 @@ Private Sub processIF(tmpinput As String) As String
 End Sub
 Private Sub processIncludes(tmp0 As String) As String
 	'开始解析嵌入模版，regex:{#\s*include.*?\s*#}
-	Dim regsign0 As String=$"\{#\s*include.*?\s*#\}"$
+	Dim regsign0 As String=$"_#\s*include.*?\s*#_"$
 	Dim tplincludes As Matcher= Regex.Matcher(regsign0,tmp0)
 	Do While tplincludes.Find
 		Dim match0 As String=tplincludes.Match&""
 		Dim matchpath As String=match0
 		matchpath=G.getText(matchpath,QUOTE,QUOTE,True)'替换双引号为单引号
 		Dim matchcontent As String= getTPLContent(matchpath)
-		match0=replaceRegexSpecal(match0)
-		tmp0=Regex.Replace(match0,tmp0,replaceRegexSpecal(matchcontent))
+'		match0=replaceRegexSpecal(match0)
+		tmp0=Regex.Replace(match0,tmp0,matchcontent)
 		'			mLog("替换引入:"&match0)
 	Loop
 	Return tmp0
@@ -232,14 +258,13 @@ End Sub
 '解析Map变量
 Private Sub processMapVar2(tmp0 As String,map As Map,itemname As String) As String
 	'开始解析变量，regex:{#\s*\$.*?\s*#}
-	Dim regsign0 As String=$"{#\s*[a-zA-z]+\.+[^\s]*\s*#}"$
-	regsign0=replaceRegexSpecal(regsign0)
+	Dim regsign0 As String=$"_#\s*[a-zA-z]+\.+[^\s]*\s*#_"$
 	Dim tplvars As Matcher=Regex.Matcher(regsign0,tmp0)
 	Do While tplvars.Find
 		Dim match0 As String=tplvars.Match
-'		g.mLog(match0)
+		'		g.mLog(match0)
 		Dim needhtml As Boolean=False
-		Dim matchedvarname As String=match0.Replace("{","").Replace("}","").Replace("#","").Replace("$","").Trim
+		Dim matchedvarname As String=match0.Replace("_","").Replace("#","").Trim
 		needhtml=matchedvarname.StartsWith("h_")'如果变量名以h_开头则自动进行html编码后输出
 		matchedvarname=matchedvarname.Replace("h_","")
 		Dim varcontent As String
@@ -271,22 +296,22 @@ Private Sub processMapVar2(tmp0 As String,map As Map,itemname As String) As Stri
 			End If
 		End If
 		
-		match0=replaceRegexSpecal(match0)
-		tmp0=Regex.Replace(match0,tmp0,replaceRegexSpecal(varcontent))
+'		match0=replaceRegexSpecal(match0)
+		tmp0=Regex.Replace(match0,tmp0,varcontent)
 	Loop
 	Return tmp0
 End Sub
 '解析普通变量
 Private Sub processVar(tmp0 As String) As String
 	'开始解析变量，regex:{#\s*\$.*?\s*#}
-	Dim regsign0 As String=$"{#\s*$.*?\s*#}"$
-	regsign0=replaceRegexSpecal(regsign0)
+	Dim regsign0 As String=$"_#\s*.*?\s*#_"$
+	
 	Dim tplvars As Matcher=Regex.Matcher(regsign0,tmp0)
 	Do While tplvars.Find
 		Dim match0 As String=tplvars.Match
-'		g.mLog(match0)
+		'		g.mLog(match0)
 		Dim needhtml As Boolean=False
-		Dim matchedvarname As String=match0.Replace("{","").Replace("}","").Replace("#","").Replace("$","").Trim
+		Dim matchedvarname As String=match0.Replace("_","").Replace("#","").Trim
 		needhtml=matchedvarname.StartsWith("h_")'如果变量名以h_开头则自动进行html编码后输出
 		matchedvarname=matchedvarname.Replace("h_","")
 		Dim varcontent As String
@@ -303,21 +328,18 @@ Private Sub processVar(tmp0 As String) As String
 				
 				varcontent= mapData.GetDefault(matchedvarname,matchedvarname)
 				If needhtml Then varcontent=EscapeHtml(varcontent)
-				match0=replaceRegexSpecal(match0)
-				
+				tmp0=Regex.Replace(match0,tmp0,varcontent)
 			Else
 				'					mLog("未知变量:"&matchedvarname)
 				varcontent="unknown var:"&matchedvarname
+				tmp0=Regex.Replace(match0,tmp0,varcontent)
 			End If
 		End If
-		tmp0=Regex.Replace(match0,tmp0,replaceRegexSpecal(varcontent))
+		tmp0=Regex.Replace(match0,tmp0,varcontent)
 	Loop
 	Return tmp0
 End Sub
-'对正则表达式特殊字符进行转义
-Private Sub replaceRegexSpecal(str As String) As String
-	Return str.Replace("{","\{").Replace("}","\}").Replace("$","\$").Replace("<","\<").Replace(">","\>").Replace("/","\/")
-End Sub
+
 '根据主题名称获取模版目录
 Private Sub getTPLPath As String
 	Dim tplpath As String=File.Combine(File.DirApp,ViewBasePath)

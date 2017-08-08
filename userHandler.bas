@@ -42,7 +42,7 @@ Sub test(req As ServletRequest,resp As ServletResponse)
 	te.putData("lst",lst)
 	te.putData("title","tt")
 '	te.putData("headertitle","tt")
-	te.renderTPL("live/page")
+	te.renderTPL("live/test")
 End Sub
 '这个使用laytpl进行前端渲染
 Sub test2(req As ServletRequest,resp As ServletResponse)
