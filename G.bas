@@ -1,20 +1,21 @@
 ﻿Type=StaticCode
-Version=5.8
+Version=5.9
 ModulesStructureVersion=1
 B4J=true
 @EndOfDesignText@
 
 Sub Process_Globals
-	Private jsg As JSONGenerator
+	Private jsg As JSONGenerator2
 	Private su As StringUtils
 	Public devMode As Boolean
 	Public action As String="action"
 	Public MessageDigestObj  As MessageDigest
 	Private bc As ByteConverter
-	Public staticFilesFolder As String="public",uploadFolder As String="upload"
-	Public baseCache,funCache As Map
+	Public staticFilesFolder As String="public",uploadFolder As String="upload",uploadMaxSize As Int=20*1024*1024 '20mb
+	Public baseCache,funCache,Settings As Map
 	Public reloadbasemaptime As Int=60
 	Public addFunctionAuto As Boolean=True '是否自动添加接口
+	Public allowuploadfileext As String="jpg,png,pdf,doc,docx,rar,xls,xlsx,zip,gif"
 	Public db As SQL
 End Sub
 Public Sub Json(success As Boolean,data As Object) As  String
@@ -29,6 +30,35 @@ Public Sub Json(success As Boolean,data As Object) As  String
 	jsg.Initialize(m)
 	Return jsg.ToString
 End Sub
+Public Sub webDir2LocalDir(d As String) As String
+	Return File.Combine(File.Combine(File.DirApp,staticFilesFolder),d)
+End Sub
+Public Sub checkMobileByUA(ua As String) As Boolean
+	If ua.ToLowerCase.IndexOf("android")>-1 Or ua.ToLowerCase.IndexOf("ios")>-1 Or ua.ToLowerCase.IndexOf("wap")>-1 Then
+		Return True
+	Else
+		Return False
+	End If
+End Sub
+Public Sub toJson(data As Object) As String
+	If data Is Map Then
+		jsg.Initialize(data)
+		Return jsg.ToString
+	else if data Is List Then
+		jsg.Initialize2(data)
+		Return jsg.ToString
+	Else
+		Return data
+	End If
+	
+End Sub
+Public Sub getSetting(key As String,def As String) As String
+	Return Settings.GetDefault(key,def)
+End Sub
+Public Sub setSetting(key As String,value As String,db1 As SQL)
+	Settings.Put(key,value)
+	wpDBUtils.UpdateRecord2(db1,"wp_setting",CreateMap("update":getdatetime,"val":value),CreateMap("key":key))
+End Sub
 Public Sub urlEncode(u As String) As String
 	Return su.EncodeUrl(u,"UTF-8")
 End Sub
@@ -38,6 +68,7 @@ End Sub
 '用/拆分url
 Public Sub url2Array(u As String) As String()
 	If u.StartsWith("/") Then u=u.SubString(1)
+	If u.EndsWith("/") Then u=u&"index"
 	Return Regex.Split("/",u)
 End Sub
 '将只读map转换成可读写map
@@ -87,9 +118,34 @@ Public Sub getMd5(str As String) As String
 	Dim buf() As Byte=MessageDigestObj.GetMessageDigest(str.GetBytes("UTF8"),"MD5")
 	Return bc.HexFromBytes(buf).ToLowerCase
 End Sub
+'从sql模板文件夹中(objects\sqls\xxx.sql)读取sql语句
+Public Sub getSQL(tsqlname As String) As String
+	If File.Exists(File.Combine(File.DirApp,"sqls"),tsqlname&".sql") Then
+		Return File.ReadString(File.Combine(File.DirApp,"sqls"),tsqlname&".sql")
+	Else
+		Return "no sql file:"&tsqlname&" found"
+	End If
+End Sub
+Public Sub getRndSalt As String
+	Return Rnd(100000,999999)&""
+End Sub
 Public Sub getdatetime As String
 	DateTime.DateFormat="yyyy-MM-dd"
+	DateTime.TimeFormat="HH:mm:ss"
 	Return DateTime.Date(DateTime.Now)&" "&DateTime.Time(DateTime.Now)
+End Sub
+Public Sub formatDateTime(dt As String) As String
+	DateTime.DateFormat="yyyy-MM-dd"
+	DateTime.TimeFormat="HH:mm:ss"
+	Try
+		Dim ts() As String=Regex.Split(" ",dt)
+		Dim lTs As Long=DateTime.DateTimeParse(ts(0),ts(1))
+		Return DateTime.Date(lTs)&" "&DateTime.Time(lTs)
+	Catch
+		Log(LastException)
+		Return DateTime.Date(DateTime.Now)&" "&DateTime.Time(DateTime.Now)
+	End Try
+	
 End Sub
 Public Sub getuuid As String
 	Dim jo As JavaObject
@@ -100,11 +156,47 @@ Public Sub getuuid As String
 	'	r.Target = r.RunStaticMethod("java.util.UUID", "randomUUID", Null, Null)
 	'	Return r.RunMethod("toString")
 End Sub
-
+'uid=-1 is logout
+Public Sub setUserLogined(req As ServletRequest,uid As Int)
+	req.GetSession.SetAttribute("uid",uid)
+End Sub
+'-1=未登录
+Public Sub getUid(req As ServletRequest) As Int
+	Return req.GetSession.GetAttribute2("uid",-1)
+End Sub
+'uid=-1 is logout
+Public Sub setMgrLogined(req As ServletRequest,uid As Int)
+	req.GetSession.SetAttribute("aid",uid)
+End Sub
+'-1=未登录
+Public Sub getAid(req As ServletRequest) As Int
+	Return req.GetSession.GetAttribute2("aid",-1)
+End Sub
 #Region utils
+Public Sub js2List(js As String) As List
+	Dim jsp As JSONParser
+	jsp.Initialize(js)
+	Return jsp.NextArray
+End Sub
+Public Sub js2Map(js As String) As Map
+	Dim jsp As JSONParser
+	jsp.Initialize(js)
+	Return jsp.NextObject
+End Sub
 public Sub mLog(msg As String)
 	If devMode Then
 		Log(msg)
 	End If
 End Sub
+Public Sub str2int(str As String,def As Int) As Int
+	Dim ret As Int
+	Try
+		ret=str
+	Catch
+		ret=def
+		Log(LastException)
+	End Try
+	Return ret
+End Sub
+
 #End region

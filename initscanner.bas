@@ -1,5 +1,5 @@
 ﻿Type=Class
-Version=5.8
+Version=5.9
 ModulesStructureVersion=1
 B4J=true
 @EndOfDesignText@
@@ -63,8 +63,9 @@ for /f "tokens=1" %%i in (webplus.pid) do taskkill /f /im %%i
 echo "clean old logs"
 del logs /s /f /q
 "$)
+		Dim jarname As String=File.GetName(srcpath)
 		If srcpath.EndsWith(".jar") Then 
-			sb.Append("java.exe -jar "&srcpath).Append(CRLF)
+			sb.Append("java.exe -jar "&jarname).Append(CRLF)
 		Else
 			Dim cpstr As String=GetSystemProperty("java.class.path","")
 			Dim enc As String=GetSystemProperty("file.encoding","unknow")	

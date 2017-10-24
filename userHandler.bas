@@ -1,5 +1,5 @@
 ﻿Type=Class
-Version=5.8
+Version=5.9
 ModulesStructureVersion=1
 B4J=true
 @EndOfDesignText@
@@ -7,6 +7,7 @@ B4J=true
 Sub Class_Globals
 	Private te As WPTemplateEngine
 	Public actionkey As String="/user/*"
+	Private db As SQL
 End Sub
 
 Public Sub Initialize
@@ -15,6 +16,7 @@ End Sub
 
 Sub Handle(req As ServletRequest, resp As ServletResponse)
 	te.bindResponse(resp)
+	db=wpDBUtils.conpool.GetConnection
 	Dim routes() As String= G.url2Array(req.RequestURI)
 	If SubExists(Me,routes(1)) Then
 		CallSub3(Me,routes(1),req,resp)
@@ -23,6 +25,7 @@ Sub Handle(req As ServletRequest, resp As ServletResponse)
 	Else
 		unknowaction(req,resp)
 	End If
+	db.Close
 	Return
 End Sub
 Sub add(req As ServletRequest,resp As ServletResponse)
@@ -38,7 +41,7 @@ Sub test(req As ServletRequest,resp As ServletResponse)
 	Dim ps As Int=m.GetDefault("ps",10)
 	Dim start As Int=(pn-1)*ps
 	If start<0 Then start=0
-	Dim lst As List=wpDBUtils.ExecuteMemoryTable(G.db,$"select * from test limit ${start},${ps}"$,Null,0)
+	Dim lst As List=wpDBUtils.ExecuteMemoryTable(db,$"select * from test limit ${start},${ps}"$,Null,0)
 	te.putData("lst",lst)
 	te.putData("title","tt")
 '	te.putData("headertitle","tt")
@@ -51,7 +54,7 @@ Sub test2(req As ServletRequest,resp As ServletResponse)
 	Dim ps As Int=m.GetDefault("ps",10)
 	Dim start As Int=(pn-1)*ps
 	If start<0 Then start=0
-	Dim lst As List=wpDBUtils.ExecuteMemoryTable(G.db,$"select * from test limit ${start},${ps}"$,Null,0)
+	Dim lst As List=wpDBUtils.ExecuteMemoryTable(db,$"select * from test limit ${start},${ps}"$,Null,0)
 	te.putData("lst",lst)
 	te.putData("title","tt")
 	Dim r As Map

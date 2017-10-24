@@ -1,6 +1,6 @@
-﻿Version=5.8
+﻿Version=5.9
 AppType=StandardJava
-NumberOfModules=16
+NumberOfModules=17
 Module1=userHandler
 Module2=userHelper
 Module3=wpDBUtils
@@ -17,6 +17,7 @@ Module13=weihu
 Module14=menuHandler
 Module15=moduleFunc
 Module16=reqUtils
+Module17=commonHandler
 Build1=Default,org.xlzbw.webplus
 NumberOfFiles=0
 NumberOfLibraries=10

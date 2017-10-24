@@ -1,5 +1,5 @@
 ﻿Type=StaticCode
-Version=5.8
+Version=5.9
 ModulesStructureVersion=1
 B4J=true
 @EndOfDesignText@
@@ -58,7 +58,7 @@ Public Sub ExecuteBaseMap(SQL As SQL, Query As String, StringArgs() As String) A
 	res.Initialize
 	'	Log("cnt:"&cur.ColumnCount)
 	Do While cur.NextRow
-		res.Put(cur.GetString("ids").ToLowerCase,cur.GetString("val"))
+		res.Put(cur.GetString2(0).ToLowerCase,cur.GetString2(1))
 	Loop
 	cur.Close
 	Return res
@@ -224,10 +224,16 @@ End Sub
 'Each item in the list is a strings array.
 'StringArgs - Values to replace question marks in the query. Pass Null if not needed.
 'Limit - Limits the results. Pass 0 for all results.
-Public Sub ExecuteMemoryTable(SQL As SQL, Query As String, StringArgs() As String, Limit As Int) As List
+Public Sub ExecuteMemoryTable(SQL As SQL, Query As String, StringArgs() As Object, Limit As Int) As List
 	Dim cur As ResultSet
-	If StringArgs = Null Then
-		Dim StringArgs(0) As String
+'	Log(GetType(StringArgs)&" len:"&StringArgs.Length)
+'	Dim params As List
+'	params.Initialize
+'	For Each v As Object In StringArgs
+'		params.Add(v)
+'	Next
+	If StringArgs == Null Or StringArgs.Length<1 Then
+		Dim StringArgs(0) As Object
 	End If
 	cur = SQL.ExecQuery2(Query, StringArgs)
 	g.mLog("ExecuteMemoryTable: " & Query)
@@ -252,18 +258,17 @@ Public Sub ExecuteMemoryTable2(SQL As SQL, tablename As String,fields As String,
 	sb.Initialize
 	Dim args As List
 	args.Initialize
+	Dim table As List
+	table.Initialize
 	sb.Append("select "&fields&" from "&EscapeField(tablename)&" where 1=1")
 	For i = 0 To WhereFieldEquals.Size - 1
-		If i > 0 Then
-			sb.Append(" AND ")
-		End If
+		sb.Append(" AND ")
 		sb.Append(EscapeField(WhereFieldEquals.GetKeyAt(i))).Append(" = ?")
 		args.Add(WhereFieldEquals.GetValueAt(i))
 	Next
 	cur = SQL.ExecQuery2(sb.ToString,args)
 	g.mLog("ExecuteMemoryTable: " & sb.ToString)
-	Dim table As List
-	table.Initialize
+	
 	Do While cur.NextRow
 		Dim m As Map
 		m.Initialize
@@ -280,7 +285,7 @@ End Sub
 'and the first record values As the entries values.
 'The keys are lower cased.
 'Returns an uninitialized map if there are no results.
-Public Sub ExecuteMap(SQL As SQL, Query As String, StringArgs() As String) As Map
+Public Sub ExecuteMap(SQL As SQL, Query As String, StringArgs() As Object) As Map
 	Dim res As Map
 	Dim cur As ResultSet
 	If StringArgs <> Null Then
@@ -288,12 +293,13 @@ Public Sub ExecuteMap(SQL As SQL, Query As String, StringArgs() As String) As Ma
 	Else
 		cur = SQL.ExecQuery(Query)
 	End If
+	res.Initialize
 	g.mLog("ExecuteMap: " & Query)
 	If cur.NextRow = False Then
 		g.mLog("No records found.")
 		Return res
 	End If
-	res.Initialize
+	
 	g.mLog("cnt:"&cur.ColumnCount)
 	For i = 0 To cur.ColumnCount - 1
 		res.Put(cur.GetColumnName(i).ToLowerCase, cur.GetString2(i))
@@ -371,10 +377,10 @@ Public Sub DeleteRecord(SQL As SQL, TableName As String, WhereFieldEquals As Map
 	SQL.ExecNonQuery2(sb.ToString, args)
 End Sub
 #Region alias
-Public Sub QueryOne(SQL As SQL, Query As String, StringArgs() As String) As Map
+Public Sub QueryOne(SQL As SQL, Query As String, StringArgs() As Object) As Map
 	Return ExecuteMap(SQL,Query,StringArgs)
 End Sub
-Public Sub QueryList(SQL As SQL, Query As String, StringArgs() As String, Limit As Int) As List
+Public Sub QueryList(SQL As SQL, Query As String, StringArgs() As Object, Limit As Int) As List
 	Return ExecuteMemoryTable(SQL, Query, StringArgs, Limit)
 End Sub
 Public Sub QueryList2(SQL As SQL, tablename As String,fields As String,WhereFieldEquals As Map, Limit As Int) As List
