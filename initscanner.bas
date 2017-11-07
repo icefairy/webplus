@@ -39,9 +39,9 @@ Public Sub Initialize(ser As Server)
 	Else
 		Log("clsList not init or MergeLibraries is set to true,if you want to using this utils you should set MergeLibraries to false")
 	End If
-	#if release
+'	#if release
 	printStartCmdLine
-	#End If
+'	#End If
 	
 End Sub
 Private Sub printStartCmdLine
@@ -59,16 +59,17 @@ cd /d %~dp0
 set curpath=%cd%
 echo "enter work dir:%curpath%"
 echo "kill java.exe"
-for /f "tokens=1" %%i in (webplus.pid) do taskkill /f /im %%i
+for /f "tokens=1" %%i in (webplus.pid) do taskkill /f /pid %%i
 echo "clean old logs"
 del logs /s /f /q
 "$)
-		Dim jarname As String=File.GetName(srcpath)
-		If srcpath.EndsWith(".jar") Then 
+		Dim jarname As String=getJarFilenameFromOBjects
+		Log("jarname:"&jarname)
+		If srcpath.EndsWith(".jar") Then
 			sb.Append("java.exe -jar "&jarname).Append(CRLF)
 		Else
 			Dim cpstr As String=GetSystemProperty("java.class.path","")
-			Dim enc As String=GetSystemProperty("file.encoding","unknow")	
+			Dim enc As String=GetSystemProperty("file.encoding","unknow")
 			sb.Append("java.exe -Dfile.encoding=").Append(enc).Append(" -cp ")
 			Try
 				If cpstr.Length>0 Then
@@ -114,11 +115,24 @@ del logs /s /f /q
 	
 End Sub
 Private Sub getJarFilenameFromOBjects As String
-	Dim lst As List=File.ListFiles(File.DirApp)
+	Dim lst As List
+	#if release
+	lst=File.ListFiles(File.DirApp)
+	#Else
+	lst=File.ListFiles(File.Combine(File.DirApp,"../"))
+	#End If
+	
 	For Each s As String In lst
+		#if release
 		If s.ToLowerCase.EndsWith(".jar") Then
 			Return File.GetName(s)
 		End If
+		#Else
+		If s.ToLowerCase.EndsWith(".b4j") Then
+			Return File.GetName(s).ToLowerCase.Replace(".b4j",".jar")
+		End If
+		#End If
+		
 	Next
 End Sub
 Private Sub getFilePathinLibs(s As String) As String
@@ -132,7 +146,7 @@ Private Sub GetActionKeyTS(clsName As String) As actionts
 	Try
 		jo=jo.InitializeNewInstance(pkg,Null)
 		#if release
-			jo.RunMethod("_class_globals",Null) 'release mode
+		jo.RunMethod("_class_globals",Null) 'release mode
 		#else
 			jo.RunMethod("_class_globals",Array As Object(Null)) 'debug mode
 		#End If
