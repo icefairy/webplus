@@ -8,6 +8,7 @@ Sub Class_Globals
 	Private te As WPTemplateEngine
 	Public actionkey As String="/user/*"
 	Private db As SQL
+	Private bEnd As Boolean=False
 End Sub
 
 Public Sub Initialize
@@ -65,4 +66,30 @@ Sub test2(req As ServletRequest,resp As ServletResponse)
 	te.putData("jss",jsg.ToString)
 	Log(jsg.ToString)
 	te.renderTPL("live/page2")
+End Sub
+'分页例子
+Public Sub Pagination
+	Dim i As Int=0
+	Dim pagesize As Int=5
+	Dim ts As Int
+	ts=wpDBUtils.Pagination_TotalSize(G.db,"from wp_user","",Null)
+	Log("totalSize:"&ts)
+	Do While bEnd=False
+		getPage(i,pagesize)
+		i=i+1
+	Loop
+	Log("全部结束")
+	StartMessageLoop
+End Sub
+Private Sub getPage(pn As Int,pagesize As Int)
+	Dim lst As List= wpDBUtils.Pagination(G.db,"select * ","from wp_user","","username asc",Null,pn,pagesize)
+	Log("第"&pn&"页开始")
+	For Each m As Map In lst
+		Log(m)
+	Next
+	Log("第"&pn&"页结束")
+	If lst.Size<pagesize Then
+		bEnd=True
+		Return
+	End If
 End Sub

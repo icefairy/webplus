@@ -153,6 +153,43 @@ Public Sub InsertMaps(SQL As SQL, TableName As String, ListOfMaps As List) As db
 	Return ret
 	
 End Sub
+
+'Inserts the data to the table.
+'ListOfMaps - A list with maps as items. Each map represents a record where the map keys are the columns names
+'and the maps values are the values.
+'Note that you should create a new map for each record (this can be done by calling Dim to redim the map).
+Public Sub ReplaceMap(SQL As SQL, TableName As String, map As Map)  
+	Dim sb,  values As StringBuilder
+	'Small check for a common error where the same map is used in a loop
+	sb.Initialize
+'			columns.Initialize
+	values.Initialize
+	Dim listOfValues As List
+	listOfValues.Initialize
+	sb.Append("REPLACE INTO " & EscapeField(TableName) & " ")
+	Dim m As Map=map
+	
+	For i2 = 0 To m.Size - 1
+		Dim col As String
+		Dim value As Object
+		col = m.GetKeyAt(i2)
+		value = m.GetValueAt(i2)
+		If i2 > 0 Then
+'					columns.Append(", ")
+			values.Append(", ")
+		End If
+'				columns.Append(EscapeField(col))
+		
+		values.Append("?")
+		listOfValues.Add(value)
+	Next
+'			sb.Append(columns.ToString)
+	sb.Append(" VALUES (")
+	sb.Append(values.ToString)
+	sb.Append(")")
+	Log("ReplaceMap: " & sb.ToString)
+	SQL.ExecNonQuery2(sb.ToString, listOfValues)	
+End Sub
 Public Sub InsertMap(SQL As SQL, TableName As String, m As Map) As dbOptret
 	Dim lst As List
 	lst.Initialize
@@ -376,6 +413,84 @@ Public Sub DeleteRecord(SQL As SQL, TableName As String, WhereFieldEquals As Map
 	g.mLog("DeleteRecord: " & sb.ToString)
 	SQL.ExecNonQuery2(sb.ToString, args)
 End Sub
+#Region Pagination
+'support mysql only
+'fromQuery:from wp_user
+'whereQuery: username like '1%'
+'orderby:username asc,nickname desc
+'args:array(1,"123")
+'pageno start from 0
+Public Sub Pagination_TotalSize(SQL As SQL,fromQuery As String,whereQuery As String,args() As Object) As Int
+	Dim qsb As StringBuilder
+	qsb.Initialize
+	qsb.Append("select count(1) cnt ")
+	qsb.Append(fromQuery&" where 1=1 ")
+	If whereQuery<>Null And whereQuery.Length>0 Then
+		qsb.Append("and "&whereQuery&" ")
+	End If
+	Dim query As String=qsb.ToString
+	G.mLog("PaginationTotalSize:"&query)
+	Dim cur As ResultSet
+	If args<>Null Then
+		cur=SQL.ExecQuery2(query,args)
+	Else
+		cur=SQL.ExecQuery(query)
+	End If
+	Try
+		cur.NextRow
+		Return cur.GetInt("cnt")
+	Catch
+		Log(LastException)
+		Return 0
+	End Try
+End Sub
+
+'support mysql only
+'selectQuery:select *
+'fromQuery:from wp_user
+'whereQuery: username like '1%'
+'orderby:username asc,nickname desc
+'args:array(1,"123")
+'pageno start from 0
+Public Sub Pagination(SQL As SQL,selectQuery As String,fromQuery As String,whereQuery As String,orderby As String,args() As Object,pageno As Int,pagesize As Int) As List
+	Dim start As Int=pageno*pagesize
+	Dim qsb As StringBuilder
+	qsb.Initialize
+	If selectQuery<>Null And selectQuery.Length>0 Then
+		qsb.Append(selectQuery&" ")
+	Else
+		qsb.Append("select * ")
+	End If
+	qsb.Append(fromQuery&" where 1=1 ")
+	If whereQuery<>Null And whereQuery.Length>0 Then
+		qsb.Append("and "&whereQuery&" ")
+	End If
+	If orderby<>Null And orderby.Length>0 Then
+		qsb.Append("order by "&orderby&" ")
+	End If
+	qsb.Append("limit "&start&","&pagesize)
+	Dim query As String=qsb.ToString
+	G.mLog("Pagination:"&query)
+	Dim cur As ResultSet
+	If args<>Null Then
+		cur=SQL.ExecQuery2(query,args)
+	Else
+		cur=SQL.ExecQuery(query)
+	End If
+	Dim table As List
+	table.Initialize
+	Do While cur.NextRow
+		Dim m As Map
+		m.Initialize
+		For col = 0 To cur.ColumnCount - 1
+			m.Put(cur.GetColumnName(col).ToLowerCase,cur.GetString2(col))
+		Next
+		table.Add(m)
+	Loop
+	cur.Close
+	Return table
+End Sub
+#End Region
 #Region alias
 Public Sub QueryOne(SQL As SQL, Query As String, StringArgs() As Object) As Map
 	Return ExecuteMap(SQL,Query,StringArgs)

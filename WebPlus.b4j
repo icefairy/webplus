@@ -71,7 +71,7 @@ Sub AppStart (Args() As String)
 	'创建一个缓存管理器
 '	setSessionExpireTime(ser,"webplus")
 '	ServerUsePersistentSessions(ser,File.DirApp,10,True)
-ser.AddBackgroundWorker("weihu")
+	ser.AddBackgroundWorker("weihu")
 	ser.AddBackgroundWorker("cachemgr")
 	'开启gzip
 	ser.GzipEnabled=True
@@ -163,11 +163,11 @@ Sub test1
 '	Log(jsg.ToPrettyString(1))
 	ExitApplication
 '	Dim str As String=$"{#include "/header"#}
-'<div id="body">
+	'<div id="body">
 '	<p>这是bodytext的内容：{# $bodytext #}</p>
 '	<p>这是bodyhtml的内容：{#$h_bodyhtml#}</p>
-'</div>
-'{#include "/footer"#}"$
+	'</div>
+	'{#include "/footer"#}"$
 '	'str=Regex.Replace($"\{#\s*include.*?\s*#\}"$,str,"header")
 '	str=Regex.Replace($"\{#\s*\$.*?\s*#\}"$,str,"{$content$}".Replace("{","\{").Replace("}","\}").Replace("$","\$"))
 '	Log(str)

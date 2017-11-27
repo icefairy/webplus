@@ -1,27 +1,8 @@
-﻿# Host: localhost  (Version: 5.5.53)
-# Date: 2017-07-28 16:33:31
+﻿# Host: 127.0.0.1  (Version: 5.5.53)
+# Date: 2017-11-27 11:05:02
 # Generator: MySQL-Front 5.3  (Build 4.234)
 
 /*!40101 SET NAMES utf8 */;
-
-#
-# Structure for table "test"
-#
-
-DROP TABLE IF EXISTS `test`;
-CREATE TABLE `test` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
-  `line` varchar(255) DEFAULT NULL,
-  `dt` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`Id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1001 DEFAULT CHARSET=utf8;
-
-#
-# Data for table "test"
-#
-
-/*!40000 ALTER TABLE `test` DISABLE KEYS */;
-/*!40000 ALTER TABLE `test` ENABLE KEYS */;
 
 #
 # Structure for table "wp_department"
@@ -29,14 +10,20 @@ CREATE TABLE `test` (
 
 DROP TABLE IF EXISTS `wp_department`;
 CREATE TABLE `wp_department` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  `Id` int(11) NOT NULL AUTO_INCREMENT COMMENT '部门id',
+  `parent_id` int(11) DEFAULT '0' COMMENT '上级部门id',
+  `name` varchar(255) DEFAULT '' COMMENT '部门名称',
+  `create` datetime DEFAULT NULL COMMENT '创建时间',
+  `update` datetime DEFAULT NULL COMMENT '修改时间',
+  `deleted` int(1) DEFAULT '0' COMMENT '已删除',
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='部门表';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='部门表';
 
 #
 # Data for table "wp_department"
 #
 
+INSERT INTO `wp_department` VALUES (1,0,'销售部','2017-11-27 10:48:54',NULL,0);
 
 #
 # Structure for table "wp_dict"
@@ -72,14 +59,16 @@ CREATE TABLE `wp_function` (
   `order` int(11) DEFAULT '0' COMMENT '排序',
   `create` datetime DEFAULT NULL COMMENT '创建时间',
   `update` datetime DEFAULT NULL COMMENT '更新时间',
+  `deleted` int(1) DEFAULT '0',
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8 COMMENT='功能列表';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='功能列表';
 
 #
 # Data for table "wp_function"
 #
 
-INSERT INTO `wp_function` VALUES (1,'用户管理','',0,0,'2017-05-04 13:26:57',NULL),(2,'更新用户','/user/update',1,0,'2017-05-04 13:27:03',NULL),(3,'创建用户','/user/save',1,0,'2017-05-04 13:27:12',NULL),(4,'删除用户','/user/delete',1,0,'2017-05-04 13:27:18',NULL),(5,'用户列表','/user/list',1,0,'2017-05-04 13:29:10',NULL),(6,'查询用户','/user/find',1,0,'2017-05-04 13:29:23',NULL),(7,'分组管理',NULL,0,0,'2017-05-04 15:01:27',NULL),(8,'菜单管理','',0,0,'2017-05-04 15:02:13',NULL),(9,'创建菜单','/menu/save',8,0,'2017-05-04 15:03:38',NULL),(10,'更新菜单','/menu/update',8,0,'2017-05-04 15:03:42',NULL),(11,'菜单列表','/menu/list',8,0,'2017-05-04 15:03:47',NULL),(12,'删除菜单','/menu/delete',8,0,'2017-05-04 15:04:02',NULL),(13,'删除分组','/group/delete',7,0,'2017-05-04 15:21:37',NULL),(14,'创建分组','/group/save',7,0,'2017-05-04 15:24:03',NULL),(15,'更新分组','/group/update',7,0,'2017-05-04 15:24:40',NULL),(16,'分组列表','/group/list',7,0,'2017-05-04 15:25:02',NULL),(17,'unknow function','/',0,0,'2017-07-28 15:44:59',NULL),(18,'unknow function','/jetty-dir.css',0,0,'2017-07-28 15:44:59',NULL),(19,'unknow function','/favicon.ico',0,0,'2017-07-28 15:44:59',NULL),(20,'unknow function','/user/test',0,0,'2017-07-28 15:45:07',NULL),(21,'unknow function','/default/layui/layui.js',0,0,'2017-07-28 15:49:21',NULL),(22,'unknow function','/js/jquery.min.js',0,0,'2017-07-28 15:49:21',NULL),(23,'unknow function','/default/layui/css/layui.css',0,0,'2017-07-28 15:49:22',NULL),(24,'unknow function','/default/layui/lay/modules/layer.js',0,0,'2017-07-28 15:49:22',NULL),(25,'unknow function','/default/layui/css/modules/layer/default/layer.css',0,0,'2017-07-28 15:49:22',NULL),(26,'unknow function','/default/layui/lay/modules/form.js',0,0,'2017-07-28 15:49:22',NULL),(27,'unknow function','/user/test2',0,0,'2017-07-28 16:11:12',NULL),(28,'unknow function','/default/layui/lay/modules/laytpl.js',0,0,'2017-07-28 16:16:07',NULL);
+/*!40000 ALTER TABLE `wp_function` DISABLE KEYS */;
+/*!40000 ALTER TABLE `wp_function` ENABLE KEYS */;
 
 #
 # Structure for table "wp_group"
@@ -88,6 +77,11 @@ INSERT INTO `wp_function` VALUES (1,'用户管理','',0,0,'2017-05-04 13:26:57',
 DROP TABLE IF EXISTS `wp_group`;
 CREATE TABLE `wp_group` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT '' COMMENT '组名',
+  `parent_id` int(11) DEFAULT '0' COMMENT '上级组id',
+  `create` datetime DEFAULT NULL COMMENT '创建时间',
+  `update` datetime DEFAULT NULL COMMENT '更新时间',
+  `deleted` int(1) DEFAULT '0' COMMENT '已删除',
   PRIMARY KEY (`Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户分组表';
 
@@ -95,6 +89,23 @@ CREATE TABLE `wp_group` (
 # Data for table "wp_group"
 #
 
+
+#
+# Structure for table "wp_groupfunctions"
+#
+
+DROP TABLE IF EXISTS `wp_groupfunctions`;
+CREATE TABLE `wp_groupfunctions` (
+  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`Id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='分组权限表';
+
+#
+# Data for table "wp_groupfunctions"
+#
+
+/*!40000 ALTER TABLE `wp_groupfunctions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `wp_groupfunctions` ENABLE KEYS */;
 
 #
 # Structure for table "wp_menu"
@@ -130,12 +141,13 @@ CREATE TABLE `wp_role` (
   `update` datetime DEFAULT NULL,
   `order` int(11) DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户角色表';
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COMMENT='用户角色表';
 
 #
 # Data for table "wp_role"
 #
 
+INSERT INTO `wp_role` VALUES (1,'管理员','2017-11-27 10:53:27',NULL,0),(2,'普通用户','2017-11-27 10:53:41',NULL,1),(3,'普通管理员','2017-11-27 10:54:28',NULL,2);
 
 #
 # Structure for table "wp_user"
@@ -152,14 +164,27 @@ CREATE TABLE `wp_user` (
   `email` varchar(255) DEFAULT '',
   `phone` varchar(16) DEFAULT '',
   `address` varchar(512) DEFAULT '',
-  `groupid` int(11) DEFAULT NULL,
-  `departmentid` int(11) DEFAULT NULL,
-  `roleid` int(11) DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户表';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='用户表';
 
 #
 # Data for table "wp_user"
+#
+
+INSERT INTO `wp_user` VALUES (1,'admin','579d9ec9d0c3d687aaa91289ac2854e4','123','管理员','','','','');
+
+#
+# Structure for table "wp_usergroup"
+#
+
+DROP TABLE IF EXISTS `wp_usergroup`;
+CREATE TABLE `wp_usergroup` (
+  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户分组表';
+
+#
+# Data for table "wp_usergroup"
 #
 
 
@@ -171,11 +196,12 @@ DROP TABLE IF EXISTS `wp_userrole`;
 CREATE TABLE `wp_userrole` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `rid` int(11) DEFAULT NULL COMMENT '角色id',
-  `fid` int(11) DEFAULT NULL COMMENT '功能id',
+  `uid` int(11) DEFAULT NULL COMMENT '用户id',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户角色对应表';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='用户角色对应表';
 
 #
 # Data for table "wp_userrole"
 #
 
+INSERT INTO `wp_userrole` VALUES (1,1,1);
