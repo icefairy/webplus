@@ -4,7 +4,7 @@ ModulesStructureVersion=1
 Type=StaticCode
 Version=5.9
 @EndOfDesignText@
-'version 1.01
+'version 1.20
 Sub Process_Globals
 	Type dbOptret (success As Boolean,msg As String)
 	Public conpool As ConnectionPool
@@ -286,7 +286,7 @@ Public Sub ExecuteMemoryTable(SQL As SQL, Query As String, StringArgs() As Objec
 		If lstTyps.IsInitialized=False Then
 			lstTyps.Initialize
 			For col = 0 To cur.ColumnCount - 1
-				Dim key As String=rsmd.getColumnClassName(col).Trim.ToLowerCase
+				Dim key As String=rsmd.getColumnClassName(col+1).Trim.ToLowerCase
 				key=key.SubString(key.LastIndexOf(".")+1)
 				lstTyps.Add(key)
 			Next
@@ -340,7 +340,7 @@ Public Sub ExecuteMemoryTable2(SQL As SQL, tablename As String,fields As String,
 		If lstTyps.IsInitialized=False Then
 			lstTyps.Initialize
 			For col = 0 To cur.ColumnCount - 1
-				Dim key As String=rsmd.getColumnClassName(col).Trim.ToLowerCase
+				Dim key As String=rsmd.getColumnClassName(col+1).Trim.ToLowerCase
 				key=key.SubString(key.LastIndexOf(".")+1)
 				lstTyps.Add(key)
 			Next
@@ -385,10 +385,33 @@ Public Sub ExecuteMap(SQL As SQL, Query As String, StringArgs() As Object) As Ma
 		g.mLog("No records found.")
 		Return res
 	End If
-	
+	Dim rsmd As clsResultSetMetaData
+	rsmd.Initialize(cur)
+	Dim lstTyps As List
+	lstTyps.Initialize
+	For col = 0 To cur.ColumnCount - 1
+		Dim key As String=rsmd.getColumnClassName(col+1).Trim.ToLowerCase
+		key=key.SubString(key.LastIndexOf(".")+1)
+		lstTyps.Add(key)
+	Next
 	g.mLog("cnt:"&cur.ColumnCount)
 	For i = 0 To cur.ColumnCount - 1
-		res.Put(cur.GetColumnName(i).ToLowerCase, cur.GetString2(i))
+		
+		
+		Dim val As Object
+		Select lstTyps.Get(col)&""
+			Case "integer"
+				val=cur.GetInt2(col)
+			Case "double"
+				val=cur.GetDouble2(col)
+			Case "long"
+				val=cur.GetLong2(col)
+			Case "byte"
+				val=cur.GetBlob2(col)
+			Case Else
+				val=cur.GetString2(col)
+		End Select
+		res.Put(cur.GetColumnName(i).ToLowerCase,val)
 	Next
 	cur.Close
 	Return res
@@ -528,11 +551,35 @@ Public Sub Pagination(SQL As SQL,selectQuery As String,fromQuery As String,where
 	End If
 	Dim table As List
 	table.Initialize
+	Dim rsmd As clsResultSetMetaData
+	rsmd.Initialize(cur)
+	Dim lstTyps As List
 	Do While cur.NextRow
 		Dim m As Map
 		m.Initialize
+		If lstTyps.IsInitialized=False Then
+			lstTyps.Initialize
+			For col = 0 To cur.ColumnCount - 1
+				Dim key As String=rsmd.getColumnClassName(col+1).Trim.ToLowerCase
+				key=key.SubString(key.LastIndexOf(".")+1)
+				lstTyps.Add(key)
+			Next
+		End If
 		For col = 0 To cur.ColumnCount - 1
-			m.Put(cur.GetColumnName(col).ToLowerCase,cur.GetString2(col))
+			Dim val As Object
+			Select lstTyps.Get(col)&""
+				Case "integer"
+					val=cur.GetInt2(col)
+				Case "double"
+					val=cur.GetDouble2(col)
+				Case "long"
+					val=cur.GetLong2(col)
+				Case "byte"
+					val=cur.GetBlob2(col)
+				Case Else
+					val=cur.GetString2(col)
+			End Select
+			m.Put(cur.GetColumnName(col).ToLowerCase,val)
 		Next
 		table.Add(m)
 	Loop
