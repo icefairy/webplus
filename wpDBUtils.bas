@@ -1,7 +1,8 @@
-﻿Type=StaticCode
-Version=5.9
+﻿B4J=true
+Group=Default Group
 ModulesStructureVersion=1
-B4J=true
+Type=StaticCode
+Version=5.9
 @EndOfDesignText@
 'version 1.01
 Sub Process_Globals
@@ -158,7 +159,7 @@ End Sub
 'ListOfMaps - A list with maps as items. Each map represents a record where the map keys are the columns names
 'and the maps values are the values.
 'Note that you should create a new map for each record (this can be done by calling Dim to redim the map).
-Public Sub ReplaceMap(SQL As SQL, TableName As String, map As Map)  
+Public Sub ReplaceMap(SQL As SQL, TableName As String, map As Map)
 	Dim sb,  values As StringBuilder
 	'Small check for a common error where the same map is used in a loop
 	sb.Initialize
@@ -188,7 +189,7 @@ Public Sub ReplaceMap(SQL As SQL, TableName As String, map As Map)
 	sb.Append(values.ToString)
 	sb.Append(")")
 	Log("ReplaceMap: " & sb.ToString)
-	SQL.ExecNonQuery2(sb.ToString, listOfValues)	
+	SQL.ExecNonQuery2(sb.ToString, listOfValues)
 End Sub
 Public Sub InsertMap(SQL As SQL, TableName As String, m As Map) As dbOptret
 	Dim lst As List
@@ -276,11 +277,35 @@ Public Sub ExecuteMemoryTable(SQL As SQL, Query As String, StringArgs() As Objec
 	g.mLog("ExecuteMemoryTable: " & Query)
 	Dim table As List
 	table.Initialize
+	Dim rsmd As clsResultSetMetaData
+	rsmd.Initialize(cur)
+	Dim lstTyps As List
 	Do While cur.NextRow
 		Dim m As Map
 		m.Initialize
+		If lstTyps.IsInitialized=False Then
+			lstTyps.Initialize
+			For col = 0 To cur.ColumnCount - 1
+				Dim key As String=rsmd.getColumnClassName(col).Trim.ToLowerCase
+				key=key.SubString(key.LastIndexOf(".")+1)
+				lstTyps.Add(key)
+			Next
+		End If
 		For col = 0 To cur.ColumnCount - 1
-			m.Put(cur.GetColumnName(col).ToLowerCase,cur.GetString2(col))
+			Dim val As Object
+			Select lstTyps.Get(col)&""
+				Case "integer"
+					val=cur.GetInt2(col)
+				Case "double"
+					val=cur.GetDouble2(col)
+				Case "long"
+					val=cur.GetLong2(col)
+				Case "byte"
+					val=cur.GetBlob2(col)
+				Case Else
+					val=cur.GetString2(col)
+			End Select
+			m.Put(cur.GetColumnName(col).ToLowerCase,val)
 		Next
 		table.Add(m)
 		If Limit > 0 And table.Size >= Limit Then Exit
@@ -288,6 +313,7 @@ Public Sub ExecuteMemoryTable(SQL As SQL, Query As String, StringArgs() As Objec
 	cur.Close
 	Return table
 End Sub
+
 'query list
 Public Sub ExecuteMemoryTable2(SQL As SQL, tablename As String,fields As String,WhereFieldEquals As Map, Limit As Int) As List
 	Dim cur As ResultSet
@@ -305,12 +331,35 @@ Public Sub ExecuteMemoryTable2(SQL As SQL, tablename As String,fields As String,
 	Next
 	cur = SQL.ExecQuery2(sb.ToString,args)
 	g.mLog("ExecuteMemoryTable: " & sb.ToString)
-	
+	Dim rsmd As clsResultSetMetaData
+	rsmd.Initialize(cur)
+	Dim lstTyps As List
 	Do While cur.NextRow
 		Dim m As Map
 		m.Initialize
+		If lstTyps.IsInitialized=False Then
+			lstTyps.Initialize
+			For col = 0 To cur.ColumnCount - 1
+				Dim key As String=rsmd.getColumnClassName(col).Trim.ToLowerCase
+				key=key.SubString(key.LastIndexOf(".")+1)
+				lstTyps.Add(key)
+			Next
+		End If
 		For col = 0 To cur.ColumnCount - 1
-			m.Put(cur.GetColumnName(col).ToLowerCase,cur.GetString2(col))
+			Dim val As Object
+			Select lstTyps.Get(col)&""
+				Case "integer"
+					val=cur.GetInt2(col)
+				Case "double"
+					val=cur.GetDouble2(col)
+				Case "long"
+					val=cur.GetLong2(col)
+				Case "byte"
+					val=cur.GetBlob2(col)
+				Case Else
+					val=cur.GetString2(col)
+			End Select
+			m.Put(cur.GetColumnName(col).ToLowerCase,val)
 		Next
 		table.Add(m)
 		If Limit > 0 And table.Size >= Limit Then Exit
@@ -446,7 +495,7 @@ Public Sub Pagination_TotalSize(SQL As SQL,fromQuery As String,whereQuery As Str
 End Sub
 
 'support mysql only
-'selectQuery:select *
+'selectQuery:*
 'fromQuery:from wp_user
 'whereQuery: username like '1%'
 'orderby:username asc,nickname desc
@@ -457,7 +506,7 @@ Public Sub Pagination(SQL As SQL,selectQuery As String,fromQuery As String,where
 	Dim qsb As StringBuilder
 	qsb.Initialize
 	If selectQuery<>Null And selectQuery.Length>0 Then
-		qsb.Append(selectQuery&" ")
+		qsb.Append("select "&selectQuery&" ")
 	Else
 		qsb.Append("select * ")
 	End If
@@ -489,6 +538,10 @@ Public Sub Pagination(SQL As SQL,selectQuery As String,fromQuery As String,where
 	Loop
 	cur.Close
 	Return table
+End Sub
+'support mysql only
+Public Sub truncateTable(sql As SQL, table As String)
+	sql.ExecNonQuery("truncate "&EscapeField(table))
 End Sub
 #End Region
 #Region alias

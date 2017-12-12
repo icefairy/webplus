@@ -1,7 +1,8 @@
-﻿Type=StaticCode
-Version=5.9
+﻿B4J=true
+Group=Default Group
 ModulesStructureVersion=1
-B4J=true
+Type=StaticCode
+Version=5.9
 @EndOfDesignText@
 
 Sub Process_Globals
@@ -29,6 +30,14 @@ Public Sub Json(success As Boolean,data As Object) As  String
 	m.Put("data",data)
 	jsg.Initialize(m)
 	Return jsg.ToString
+End Sub
+Public Sub arrUpperFirst(arr() As String) As String
+	Dim sb As StringBuilder
+	sb.Initialize
+	For Each s As String In arr
+		sb.Append(s.SubString2(0,1).ToUpperCase&s.SubString(1))
+	Next
+	Return sb.ToString
 End Sub
 Public Sub webDir2LocalDir(d As String) As String
 	Return File.Combine(File.Combine(File.DirApp,staticFilesFolder),d)

@@ -1,26 +1,6 @@
-﻿Version=5.9
-AppType=StandardJava
-NumberOfModules=17
-Module1=userHandler
-Module2=userHelper
-Module3=wpDBUtils
-Module4=gfilter
-Module5=groupHandler
-Module6=cachemgr
-Module7=G
-Module8=menuHelper
-Module9=jarUtils
-Module10=initscanner
-Module11=commonHandler
-Module12=WPTemplateEngine
-Module13=testHandler
-Module14=weihu
-Module15=menuHandler
-Module16=moduleFunc
-Module17=reqUtils
+﻿AppType=StandardJava
 Build1=Default,org.xlzbw.webplus
-NumberOfFiles=0
-NumberOfLibraries=10
+Group=Default Group
 Library1=jcore
 Library2=jserver
 Library3=json
@@ -29,8 +9,29 @@ Library5=javaobject
 Library6=jsql
 Library7=byteconverter
 Library8=encryption
-Library9=skeleton
-Library10=jsonplus
+Library9=jsonplus
+Module1=userHandler
+Module10=initscanner
+Module11=weihu
+Module12=commonHandler
+Module13=WPTemplateEngine
+Module14=testHandler
+Module15=menuHandler
+Module16=moduleFunc
+Module17=reqUtils
+Module18=clsResultSetMetaData
+Module2=userHelper
+Module3=wpDBUtils
+Module4=gfilter
+Module5=groupHandler
+Module6=cachemgr
+Module7=G
+Module8=menuHelper
+Module9=jarUtils
+NumberOfFiles=0
+NumberOfLibraries=9
+NumberOfModules=18
+Version=6
 @EndOfDesignText@
 'Non-UI application (console / server application)
 #Region Project Attributes 
@@ -140,36 +141,4 @@ End Sub
 Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	Log(Error)
 	Return True
-End Sub
-Sub test1
-	
-	Dim ju As jarUtils
-	ju.Initialize
-	Dim jo As JavaObject
-	jo=ju.getClassByName("org.xlzbw.webplus.userhandler")
-	Dim o As Object=jo.RunMethod("getClass",Null)
-	Log(o)
-	ju.getClassMethods(o)
-'	Dim m As Map
-'	m.Initialize
-'	Dim lst As List
-'	lst.Initialize
-'	For i=0 To 100
-'		lst.Add("line:"&i)
-'	Next
-'	m.Put("list",lst)
-'	Dim jsg As JSONGenerator
-'	jsg.Initialize(m)
-'	Log(jsg.ToPrettyString(1))
-	ExitApplication
-'	Dim str As String=$"{#include "/header"#}
-	'<div id="body">
-'	<p>这是bodytext的内容：{# $bodytext #}</p>
-'	<p>这是bodyhtml的内容：{#$h_bodyhtml#}</p>
-	'</div>
-	'{#include "/footer"#}"$
-'	'str=Regex.Replace($"\{#\s*include.*?\s*#\}"$,str,"header")
-'	str=Regex.Replace($"\{#\s*\$.*?\s*#\}"$,str,"{$content$}".Replace("{","\{").Replace("}","\}").Replace("$","\$"))
-'	Log(str)
-'	ExitApplication
 End Sub

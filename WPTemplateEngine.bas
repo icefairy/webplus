@@ -1,7 +1,8 @@
-﻿Type=Class
-Version=5.9
+﻿B4J=true
+Group=Default Group
 ModulesStructureVersion=1
-B4J=true
+Type=Class
+Version=5.9
 @EndOfDesignText@
 'WPTemplateEngine Class module
 Sub Class_Globals
